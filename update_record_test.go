@@ -234,8 +234,12 @@ func TestUpdateManyToManyRecord(t *testing.T) {
 func TestUpdateSelectOne(t *testing.T) {
 	name := "update_record_select_one"
 	var company1, company2 Company
-	db.FirstOrCreate(&company1, Language{Name: "Company 1"})
-	db.FirstOrCreate(&company2, Language{Name: "Company 2"})
+	if err := db.FirstOrCreate(&company1, &Company{Name: "Company 1"}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.FirstOrCreate(&company2, &Company{Name: "Company 2"}).Error; err != nil {
+		t.Fatal(err)
+	}
 	user := User{Name: name, Role: "admin", Company: &company1}
 	db.Save(&user)
 
