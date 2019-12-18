@@ -125,12 +125,18 @@
     border: 0;
     @include shadow-2dp();
     .select2-results__option {
-        height: 48px;
         padding: 0 16px;
-        line-height: 48px;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+        .select2-results__option-withimage{
+            padding: 8px 0;
+        }
+        img{
+            max-width: 60px;
+            max-height: 40px;
+            margin-right: 12px;
+        }
     }
 }
 

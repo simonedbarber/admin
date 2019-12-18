@@ -20,6 +20,7 @@ type SelectManyConfig struct {
 	Select2ResultTemplate    template.JS
 	Select2SelectionTemplate template.JS
 	RemoteDataResource       *Resource
+	RemoteDataHasImage       bool
 	PrimaryField             string
 	SelectOneConfig
 }

@@ -54,33 +54,39 @@ $.fn.select2.ajaxCommonOptions = function(select2Data) {
             };
         }
     };
-
 };
 
 // select2 ajax common options
 // format ajax template data
-$.fn.select2.ajaxFormatResult = function(data, tmpl) {
+$.fn.select2.ajaxFormatResult = function(data, tmpl, remoteDataImage) {
     var result = '';
-    if (tmpl.length > 0) {
-        result = window.Mustache.render(tmpl.html().replace(/{{(.*?)}}/g, '[[$1]]'), data);
-    } else {
-        result = data.text || data.Name || data.Title || data.Code || data[Object.keys(data)[0]];
-    }
-
-    // if is HTML
-    if (/<(.*)(\/>|<\/.+>)/.test(result)) {
+    if (remoteDataImage) {
+        var resultName = data.Name || data.Title || data[Object.keys(data)[0]];
+        result = '<div class="select2-results__option-withimage">' + '<img src="' + data.Image + '">' + '<span>' + resultName + '</span></div>';
         return $(result);
+    } else {
+        if (tmpl.length > 0) {
+            result = window.Mustache.render(tmpl.html().replace(/{{(.*?)}}/g, '[[$1]]'), data);
+        } else {
+            result = data.text || data.Name || data.Title || data.Code || data[Object.keys(data)[0]];
+        }
+
+        // if is HTML
+        if (/<(.*)(\/>|<\/.+>)/.test(result)) {
+            return $(result);
+        }
+
+        return result;
     }
-    return result;
 };
 
-function getSelect2Header(){
-    let data = $("body").data();
+function getSelect2Header() {
+    let data = $('body').data();
     let selectAjaxHeader = data.selectAjaxHeader;
     let getSelect2HeaderFunction = window.getSelect2HeaderFunction;
     let headers = {};
 
-    if(selectAjaxHeader && getSelect2HeaderFunction && $.isFunction(getSelect2HeaderFunction)){
+    if (selectAjaxHeader && getSelect2HeaderFunction && $.isFunction(getSelect2HeaderFunction)) {
         headers[selectAjaxHeader] = getSelect2HeaderFunction();
         return headers;
     } else {
