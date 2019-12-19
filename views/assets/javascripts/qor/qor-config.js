@@ -60,9 +60,20 @@ $.fn.select2.ajaxCommonOptions = function(select2Data) {
 // format ajax template data
 $.fn.select2.ajaxFormatResult = function(data, tmpl, remoteDataImage) {
     var result = '';
+
+    if (data.loading) {
+        return data.text;
+    }
+
     if (remoteDataImage) {
         var resultName = data.Name || data.Title || data[Object.keys(data)[0]];
-        result = '<div class="select2-results__option-withimage">' + '<img src="' + data.Image + '">' + '<span>' + resultName + '</span></div>';
+        var imageUrl = data.Image;
+        if (imageUrl) {
+            result = '<div class="select2-results__option-withimage">' + '<img src="' + imageUrl + '">' + '<span>' + resultName + '</span></div>';
+        } else {
+            result = '<div class="select2-results__option-withimage">' + resultName + '</span></div>';
+        }
+
         return $(result);
     } else {
         if (tmpl.length > 0) {
