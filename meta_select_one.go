@@ -24,6 +24,7 @@ type SelectOneConfig struct {
 	Select2ResultTemplate    template.JS
 	Select2SelectionTemplate template.JS
 	RemoteDataResource       *Resource
+	RemoteDataHasImage       bool
 	PrimaryField             string
 	metaConfig
 	getCollection func(interface{}, *Context) [][]string
