@@ -65,8 +65,14 @@ $.fn.select2.ajaxFormatResult = function(data, tmpl, remoteDataImage) {
         return data.text;
     }
 
+    console.log('select2.ajaxFormatResult: Data');
+    console.log(data);
+
+    console.log('select2.ajaxFormatResult: has remote image');
+    console.log(remoteDataImage);
+
     if (remoteDataImage) {
-        var resultName = data.Name || data.Title || data[Object.keys(data)[0]];
+        var resultName = data.text || data.Name || data.Title || data.Code || data[Object.keys(data)[0]];
         var imageUrl = data.Image;
         if (imageUrl) {
             result = '<div class="select2-results__option-withimage">' + '<img src="' + imageUrl + '">' + '<span>' + resultName + '</span></div>';
