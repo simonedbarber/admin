@@ -51,7 +51,7 @@
             // Should destroy all components here
             $template.trigger('disable');
             // remove data-select2-id attribute or select2 will disable all previous instance
-            $template.find('[data-toggle="qor.chooser"]').removeAttr('data-select2-id');
+            $template.find('select[data-toggle]').removeAttr('data-select2-id');
 
             // if have isMultiple data value or template length large than 1
             this.isMultipleTemplate = $element.data('isMultiple');
