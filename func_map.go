@@ -758,7 +758,7 @@ func (context *Context) getMenus() (menus []*menu) {
 	addMenu = func(parent *menu, menus []*Menu) {
 		for _, m := range menus {
 			url := m.URL()
-			if m.HasPermission(roles.Read, context.Context) {
+			if m.HasPermission(roles.Read, context) {
 				var menu = &menu{Menu: m}
 				if strings.HasPrefix(context.Request.URL.Path, url) && len(url) > mostMatchedLength {
 					mostMatchedMenu = menu

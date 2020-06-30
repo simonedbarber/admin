@@ -38,6 +38,7 @@ type Admin struct {
 	router           *Router
 	funcMaps         template.FuncMap
 	metaConfigorMaps map[string]func(*Meta)
+	groupEnabled     bool
 }
 
 // New new admin with configuration
@@ -91,6 +92,16 @@ func (admin *Admin) SetSiteName(siteName string) {
 // SetAuth set admin's authorization gateway
 func (admin *Admin) SetAuth(auth Auth) {
 	admin.Auth = auth
+}
+
+// SetGroupEnabled set groupEnabled flag
+func (admin *Admin) SetGroupEnabled(flag bool) {
+	admin.groupEnabled = flag
+}
+
+// IsGroupEnabled check if group enabled for admin
+func (admin *Admin) IsGroupEnabled() bool {
+	return admin.groupEnabled
 }
 
 // SetAssetFS set AssetFS for admin

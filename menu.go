@@ -3,7 +3,6 @@ package admin
 import (
 	"path"
 
-	"github.com/qor/qor"
 	"github.com/qor/roles"
 )
 
@@ -72,20 +71,23 @@ func (menu Menu) URL() string {
 }
 
 // HasPermission check menu has permission or not
-func (menu Menu) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
+func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (result bool) {
 	if menu.Permission != nil {
 		var roles = []interface{}{}
 		for _, role := range context.Roles {
 			roles = append(roles, role)
 		}
-		return menu.Permission.HasPermission(mode, roles...)
+		result = menu.Permission.HasPermission(mode, roles...)
+	} else if menu.Permissioner != nil {
+		result = menu.Permissioner.HasPermission(mode, context.Context)
 	}
 
-	if menu.Permissioner != nil {
-		return menu.Permissioner.HasPermission(mode, context)
+	// If HasPermisson on role and admin enabled group permission system.
+	if result && context.Admin.IsGroupEnabled() {
+		result = IsAllowed(context)
 	}
 
-	return true
+	return
 }
 
 // GetSubMenus get submenus for a menu
