@@ -473,7 +473,7 @@ Addresses
 
 
 <fieldset class="qor-fieldset qor-fieldset--new">
-  <button class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
+  <button data-confirm="Are you sure?" class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
 	<i class="material-icons md-18">delete</i>
   </button>
 
