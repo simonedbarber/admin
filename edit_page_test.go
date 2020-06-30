@@ -473,7 +473,7 @@ Addresses
 
 
 <fieldset class="qor-fieldset qor-fieldset--new">
-  <button class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
+  <button data-confirm="Are you sure?" class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
 	<i class="material-icons md-18">delete</i>
   </button>
 
@@ -578,7 +578,7 @@ Company
 
 <div class="qor-field__block qor-field__edit  qor-field__selectone" >
 
-<select id="user_1_company" class="qor-field__input hidden"  data-toggle="qor.chooser" data-placeholder="Select an Option" name="QorResource.Company"   data-ajax--url="/admin/companies" data-remote-data="true" data-remote-data-primary-key="ID">
+<select id="user_1_company" class="qor-field__input hidden"  data-toggle="qor.chooser" data-placeholder="Select an Option" name="QorResource.Company"   data-remote-url="/admin/companies" data-remote-data="true" data-remote-data-primary-key="ID">
 
 
 

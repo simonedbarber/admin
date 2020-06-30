@@ -41,6 +41,9 @@ func TestUpdateRecord(t *testing.T) {
 }
 
 func TestUpdateRecordWithRollback(t *testing.T) {
+	db.Exec("TRUNCATE TABLE users")
+	db.Model(&User{}).AddUniqueIndex("uix_user_name", "name")
+
 	userR := Admin.GetResource("User")
 	userR.AddProcessor(&resource.Processor{
 		Name: "product-admin-prroduct-res-processor",
@@ -51,13 +54,14 @@ func TestUpdateRecordWithRollback(t *testing.T) {
 		},
 	})
 
-	db.Save(&User{Name: "Katin", Role: "admin"})
+	anotherUsersName := "Katin"
+	db.Save(&User{Name: anotherUsersName, Role: "admin"})
 
 	user := User{Name: "update_record", Role: "admin", Languages: []Language{{Name: "CN"}, {Name: "JP"}}}
 	db.Save(&user)
 
 	form := url.Values{
-		"QorResource.Name": {"very long name very long name very long name very long name very long name very long name very long name very long name very long name"},
+		"QorResource.Name": {anotherUsersName},
 		"QorResource.Role": {"admin"},
 	}
 
@@ -65,12 +69,17 @@ func TestUpdateRecordWithRollback(t *testing.T) {
 		if req.StatusCode == 200 {
 			t.Errorf("Should update user failure when name already be token by other user.")
 		}
+
 		u := User{}
-		db.Where("name = 'update_record'").Preload("Languages").First(&u)
+		if err := db.Where("name = 'update_record'").Preload("Languages").First(&u).Error; err != nil {
+			t.Fatal(err)
+		}
+
 		languages := []string{}
 		for _, language := range u.Languages {
 			languages = append(languages, language.Name)
 		}
+
 		if strings.Join(languages, ",") != "CN,JP" {
 			t.Errorf("Should keep origin value for languages, but got %v", strings.Join(languages, ","))
 		}
@@ -234,8 +243,12 @@ func TestUpdateManyToManyRecord(t *testing.T) {
 func TestUpdateSelectOne(t *testing.T) {
 	name := "update_record_select_one"
 	var company1, company2 Company
-	db.FirstOrCreate(&company1, Language{Name: "Company 1"})
-	db.FirstOrCreate(&company2, Language{Name: "Company 2"})
+	if err := db.FirstOrCreate(&company1, &Company{Name: "Company 1"}).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.FirstOrCreate(&company2, &Company{Name: "Company 2"}).Error; err != nil {
+		t.Fatal(err)
+	}
 	user := User{Name: name, Role: "admin", Company: &company1}
 	db.Save(&user)
 
