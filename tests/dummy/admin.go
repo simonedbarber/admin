@@ -14,7 +14,7 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 	var (
 		db     = utils.TestDB()
 		models = []interface{}{&User{}, &CreditCard{}, &Address{}, &Language{}, &Profile{}, &Phone{}, &Company{}}
-		Admin  = admin.New(&qor.Config{DB: db})
+		Admin  = admin.New(&admin.AdminConfig{Auth: DummyAuth{}, DB: db})
 	)
 
 	media.RegisterCallbacks(db)
@@ -27,6 +27,8 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 	}
 
 	Admin.AddResource(&Company{})
+	Admin.AddResource(&CreditCard{})
+
 	Admin.AddResource(&Language{}, &admin.Config{Name: "语种 & 语言", Priority: -1})
 	user := Admin.AddResource(&User{})
 	user.Meta(&admin.Meta{
@@ -46,5 +48,31 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 		},
 	})
 
+	admin.RegisterGroup(Admin, []string{"Company", "CreditCard", "Address"}, user, User{})
+
 	return Admin
+}
+
+const LoggedInUserName = "QOR"
+
+type DummyAuth struct {
+}
+
+func (DummyAuth) LoginURL(ctx *admin.Context) string {
+	return "/auth/login"
+}
+
+func (DummyAuth) LogoutURL(ctx *admin.Context) string {
+	return "/auth/logout"
+}
+
+func (DummyAuth) GetCurrentUser(ctx *admin.Context) qor.CurrentUser {
+	u := User{}
+
+	if err := ctx.Admin.DB.Where("name = ?", LoggedInUserName).First(&u).Error; err != nil {
+		fmt.Println("Cannot load logged in user", err.Error())
+		return nil
+	}
+
+	return u
 }

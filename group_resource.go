@@ -17,8 +17,10 @@ type UserModel interface {
 	GetUsersByIDs(*gorm.DB, []string) interface{}
 }
 
-func Register(adm *Admin, resourceList []string, userSelectRes *Resource, userModel UserModel) *Resource {
+func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, userModel UserModel) *Resource {
 	adm.DB.AutoMigrate(&Group{})
+
+	adm.SetGroupEnabled(true)
 
 	group := adm.AddResource(&Group{},
 		&Config{Name: "Groups"})
