@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/theplant/nhk/utils"
 )
 
 type Group struct {
@@ -26,7 +25,7 @@ func IsAllowed(context *Context) bool {
 	uid := context.CurrentUser.GetID()
 	resources := allowedResources(context.DB, uid)
 
-	return utils.Contains(resources, context.Resource.Config.Name)
+	return Contains(resources, context.Resource.Config.Name)
 }
 
 // IsMenuAllowed checks if current user allowed to access current menu
@@ -34,7 +33,7 @@ func IsMenuAllowed(context *Context, menuName string) bool {
 	uid := context.CurrentUser.GetID()
 	resources := allowedResources(context.DB, uid)
 
-	return utils.Contains(resources, menuName)
+	return Contains(resources, menuName)
 }
 
 func allowedResources(db *gorm.DB, uid uint) (result []string) {
@@ -45,7 +44,7 @@ func allowedResources(db *gorm.DB, uid uint) (result []string) {
 	}
 
 	for _, g := range groups {
-		if g.Users != "" && g.AllowList != "" && utils.Contains(strings.Split(g.Users, ","), idStr) {
+		if g.Users != "" && g.AllowList != "" && Contains(strings.Split(g.Users, ","), idStr) {
 			result = append(result, strings.Split(g.AllowList, ",")...)
 		}
 	}
