@@ -83,8 +83,12 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 	}
 
 	// If HasPermisson on role and admin enabled group permission system.
-	if result && context.Admin.IsGroupEnabled() {
-		result = IsMenuAllowed(context, menu.Name)
+	if result {
+		if context.Admin.IsGroupEnabled() {
+			result = IsMenuAllowed(context, menu.Name)
+		}
+	} else {
+		result = true // When menu has no Permission and Permissioner set, always return true
 	}
 
 	return

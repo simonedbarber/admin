@@ -27,9 +27,16 @@ func TestGroupMenuPermission(t *testing.T) {
 		t.Error("user should have permission to access allowed Company resource")
 	}
 
+	noPermissionMenu := Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin", Priority: 1})
+
+	if !noPermissionMenu.HasPermission(roles.Read, ctx) {
+		t.Error("menu with no permission set should be always accessible")
+	}
+
 	group.AllowList = ""
 	utils.AssertNoErr(t, db.Save(&group).Error)
 	if companyMenu.HasPermission(roles.Read, ctx) {
 		t.Error("user should not have permission to access company when it is not allowed")
 	}
+
 }
