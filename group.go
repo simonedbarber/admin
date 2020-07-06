@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/inflection"
 )
 
 type Group struct {
@@ -25,15 +26,7 @@ func IsResourceAllowed(context *Context, resName string) bool {
 	uid := context.CurrentUser.GetID()
 	resources := allowedResources(context.DB, uid)
 
-	return Contains(resources, resName)
-}
-
-// IsMenuAllowed checks if current user allowed to access current menu
-func IsMenuAllowed(context *Context, menuName string) bool {
-	uid := context.CurrentUser.GetID()
-	resources := allowedResources(context.DB, uid)
-
-	return Contains(resources, menuName)
+	return Contains(resources, inflection.Singular(resName))
 }
 
 func allowedResources(db *gorm.DB, uid uint) (result []string) {

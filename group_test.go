@@ -18,7 +18,7 @@ func TestGroupMenuPermission(t *testing.T) {
 	user := User{Name: LoggedInUserName, Role: "admin"}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Companies,CreditCards"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,CreditCard"}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	// setup Admin
