@@ -20,12 +20,12 @@ func (g Group) TableName() string {
 	return "qor_groups"
 }
 
-// IsAllowed checks if current user allowed to access current resource
-func IsAllowed(context *Context) bool {
+// IsResourceAllowed checks if current user allowed to access current resource
+func IsResourceAllowed(context *Context, resName string) bool {
 	uid := context.CurrentUser.GetID()
 	resources := allowedResources(context.DB, uid)
 
-	return Contains(resources, context.Resource.Config.Name)
+	return Contains(resources, resName)
 }
 
 // IsMenuAllowed checks if current user allowed to access current menu

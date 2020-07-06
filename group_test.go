@@ -2,6 +2,7 @@ package admin_test
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/qor/admin"
@@ -17,7 +18,7 @@ func TestGroupMenuPermission(t *testing.T) {
 	user := User{Name: LoggedInUserName, Role: "admin"}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Companies,CreditCard"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Companies,CreditCards"}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	// setup Admin
@@ -39,4 +40,30 @@ func TestGroupMenuPermission(t *testing.T) {
 		t.Error("user should not have permission to access company when it is not allowed")
 	}
 
+}
+
+func TestGroupRouterPermission(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: "admin"}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,CreditCard"}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// TODO: C R U D should all be test covered.
+	req, err := http.Get(server.URL + "/admin/companies")
+	utils.AssertNoErr(t, err)
+
+	if req.StatusCode != 200 {
+		t.Errorf("Expect user with group permission to have the ability to visit companies")
+	}
+
+	group.AllowList = "CreditCard"
+	utils.AssertNoErr(t, db.Save(&group).Error)
+	req, err = http.Get(server.URL + "/admin/companies")
+	utils.AssertNoErr(t, err)
+
+	if req.StatusCode != 404 {
+		t.Errorf("Expect user without group permission not have the ability to visit companies")
+	}
 }

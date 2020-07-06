@@ -3,7 +3,6 @@ package admin
 import (
 	"strings"
 
-	"github.com/qor/qor"
 	"github.com/qor/roles"
 )
 
@@ -48,14 +47,20 @@ func newRouteHandler(path string, handle requestHandler, configs ...*RouteConfig
 }
 
 // HasPermission check has permission to access router handler or not
-func (handler routeHandler) HasPermission(permissionMode roles.PermissionMode, context *qor.Context) bool {
+func (handler routeHandler) HasPermission(permissionMode roles.PermissionMode, context *Context) (result bool) {
 	if handler.Config.Permissioner == nil {
 		return true
 	}
 
 	if handler.Config.PermissionMode != "" {
-		return handler.Config.Permissioner.HasPermission(handler.Config.PermissionMode, context)
+		result = handler.Config.Permissioner.HasPermission(handler.Config.PermissionMode, context.Context)
+	} else {
+		result = handler.Config.Permissioner.HasPermission(permissionMode, context.Context)
 	}
 
-	return handler.Config.Permissioner.HasPermission(permissionMode, context)
+	if result && context.Admin.IsGroupEnabled() && handler.Config.Resource != nil {
+		result = IsResourceAllowed(context, handler.Config.Resource.Name)
+	}
+
+	return
 }
