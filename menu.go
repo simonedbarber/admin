@@ -72,6 +72,12 @@ func (menu Menu) URL() string {
 
 // HasPermission check menu has permission or not
 func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (result bool) {
+	// When menu has no Permission and Permissioner set, this implicitly means it has no resource associated.
+	// Thus no need to check both role and group permission, just return true
+	if menu.Permission == nil && menu.Permissioner == nil {
+		return true
+	}
+
 	if menu.Permission != nil {
 		var roles = []interface{}{}
 		for _, role := range context.Roles {
@@ -83,12 +89,8 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 	}
 
 	// If HasPermisson on role and admin enabled group permission system.
-	if result {
-		if context.Admin.IsGroupEnabled() {
-			result = IsResourceAllowed(context, menu.Name)
-		}
-	} else {
-		result = true // When menu has no Permission and Permissioner set, always return true
+	if result && context.Admin.IsGroupEnabled() {
+		result = IsResourceAllowed(context, menu.Name)
 	}
 
 	return

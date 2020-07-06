@@ -21,25 +21,28 @@ func TestGroupMenuPermission(t *testing.T) {
 	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,CreditCard"}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
-	// setup Admin
-	companyMenu := Admin.GetMenu("Companies")
+	// // setup Admin
 	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+
+	companyMenu := Admin.GetMenu("Companies")
 	if !companyMenu.HasPermission(roles.Read, ctx) {
 		t.Error("user should have permission to access allowed Company resource")
 	}
 
+	// Check no permission menu
 	noPermissionMenu := Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin", Priority: 1})
-
 	if !noPermissionMenu.HasPermission(roles.Read, ctx) {
 		t.Error("menu with no permission set should be always accessible")
 	}
 
+	// check no group permission menu
 	group.AllowList = ""
 	utils.AssertNoErr(t, db.Save(&group).Error)
 	if companyMenu.HasPermission(roles.Read, ctx) {
 		t.Error("user should not have permission to access company when it is not allowed")
 	}
 
+	// TODO: check menu permission for user with unqualified role.
 }
 
 func TestGroupRouterPermission(t *testing.T) {
