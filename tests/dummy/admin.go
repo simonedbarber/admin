@@ -19,6 +19,8 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 
 	media.RegisterCallbacks(db)
 
+	InitRoles()
+
 	for _, value := range models {
 		if len(keepData) == 0 {
 			db.DropTableIfExists(value)
@@ -28,7 +30,6 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 
 	Admin.AddResource(&Company{})
 	Admin.AddResource(&CreditCard{})
-	Admin.AddMenu(&admin.Menu{Name: "ExternalURL"})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "语种 & 语言", Priority: -1})
 	user := Admin.AddResource(&User{})
@@ -49,7 +50,7 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 		},
 	})
 
-	admin.RegisterGroup(Admin, []string{"Company", "CreditCard", "Address"}, user, User{})
+	admin.RegisterGroup(Admin, []string{"Company", "Credit Card"}, user, User{})
 
 	return Admin
 }

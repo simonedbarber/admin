@@ -15,13 +15,13 @@ import (
 
 func TestGroupMenuPermission(t *testing.T) {
 	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: "admin"}
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,CreditCard"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,Credit Card"}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
-	// // setup Admin
+	// setup Admin
 	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
 
 	companyMenu := Admin.GetMenu("Companies")
@@ -42,7 +42,27 @@ func TestGroupMenuPermission(t *testing.T) {
 		t.Error("user should not have permission to access company when it is not allowed")
 	}
 
-	// TODO: check menu permission for user with unqualified role.
+	individualMenuWithPermission := Admin.AddMenu(&admin.Menu{Name: "ExternalURL", Permission: roles.Allow(roles.CRUD, Role_developer)})
+	if individualMenuWithPermission.HasPermission(roles.Read, ctx) {
+		t.Error("admin user should not have permission to access menu which is visible to Developer only")
+	}
+}
+
+func TestGroupMenuPermissionShouldHasLowerPriorityThanRole(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	// setup Admin, group enabled but this user has no group registered
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB},
+		Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Context.Roles = []string{Role_system_administrator}
+
+	Admin.AddResource(&Profile{}, &admin.Config{Permission: roles.Allow(roles.CRUD, Role_system_administrator)})
+	profileMenu := Admin.GetMenu("Profiles")
+	if !profileMenu.HasPermission(roles.Read, ctx) {
+		t.Error("user should have permission to access roles allowed resource")
+	}
 }
 
 func TestGroupRouterPermission(t *testing.T) {

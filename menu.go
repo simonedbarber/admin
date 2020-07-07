@@ -78,6 +78,11 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 		return true
 	}
 
+	// Check group permission first, since it has lower priority than roles.
+	if context.Admin.IsGroupEnabled() {
+		result = IsResourceAllowed(context, menu.Name)
+	}
+
 	if menu.Permission != nil {
 		var roles = []interface{}{}
 		for _, role := range context.Roles {
@@ -86,11 +91,6 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 		result = menu.Permission.HasPermission(mode, roles...)
 	} else if menu.Permissioner != nil {
 		result = menu.Permissioner.HasPermission(mode, context.Context)
-	}
-
-	// If HasPermisson on role and admin enabled group permission system.
-	if result && context.Admin.IsGroupEnabled() {
-		result = IsResourceAllowed(context, menu.Name)
 	}
 
 	return
