@@ -11,7 +11,6 @@ import (
 type Group struct {
 	gorm.Model
 
-	// TODO: consider add ignoring roles ? if it is Admin,or developer, always return true.
 	Name      string
 	Users     string
 	AllowList string

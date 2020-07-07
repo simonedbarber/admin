@@ -7,6 +7,7 @@ import (
 	"github.com/qor/media"
 	"github.com/qor/qor"
 	"github.com/qor/qor/test/utils"
+	"github.com/qor/roles"
 )
 
 // NewDummyAdmin generate admin for dummy app
@@ -32,7 +33,7 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 	Admin.AddResource(&CreditCard{})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "语种 & 语言", Priority: -1})
-	user := Admin.AddResource(&User{})
+	user := Admin.AddResource(&User{}, &admin.Config{Permission: roles.Allow(roles.CRUD, Role_system_administrator)})
 	user.Meta(&admin.Meta{
 		Name: "CreditCard",
 		Type: "single_edit",
