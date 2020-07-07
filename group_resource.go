@@ -1,16 +1,16 @@
 package admin
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 	"github.com/qor/roles"
 	"github.com/qor/validations"
-
-	qorutils "github.com/qor/qor/utils"
 )
 
 type UserModel interface {
@@ -18,15 +18,13 @@ type UserModel interface {
 }
 
 func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, userModel UserModel) *Resource {
+	ValidateResourceList(adm, resourceList)
+
 	adm.DB.AutoMigrate(&Group{})
 
 	adm.SetGroupEnabled(true)
 
-	group := adm.AddResource(&Group{},
-		&Config{Name: "Groups"})
-	// Priority: 36,
-	// Permission: roles.Allow(roles.CRUD, roles_models.Role_system_administrator, roles_models.Role_developer),
-	// Menu: []string{"User Management"},
+	group := adm.AddResource(&Group{}, &Config{Name: "Groups"})
 
 	group.IndexAttrs("ID", "Name", "CreatedAt", "UpdatedAt")
 	group.NewAttrs("Name",
@@ -59,7 +57,7 @@ func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, u
 		},
 		Setter: func(record interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 			if g, ok := record.(*Group); ok {
-				primaryKeys := qorutils.ToArray(metaValue.Value)
+				primaryKeys := utils.ToArray(metaValue.Value)
 				g.Users = strings.Join(primaryKeys, ",")
 			}
 		},
@@ -81,7 +79,7 @@ func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, u
 		},
 		Setter: func(record interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 			if g, ok := record.(*Group); ok {
-				allowedResources := qorutils.ToArray(metaValue.Value)
+				allowedResources := utils.ToArray(metaValue.Value)
 				g.AllowList = strings.Join(allowedResources, ",")
 			}
 		},
@@ -142,9 +140,29 @@ func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, u
 
 // TODO: return as a value to caller. so that it can be used in user resource.
 func initGroupSelectorRes(adm *Admin) *Resource {
-	//for selector
 	res := adm.AddResource(&Group{}, &Config{Name: "GroupSelector"})
 	res.SearchAttrs("ID", "Name")
 	adm.GetMenu("GroupSelectors").Permission = roles.Deny(roles.CRUD, roles.Anyone)
 	return res
+}
+
+// ValidateResourceList validates resources or menu name passed in are registered in admin.
+// It will panic immediately if not.
+func ValidateResourceList(adm *Admin, resourceList []string) {
+	availableResourcesName := []string{}
+	for _, r := range adm.GetResources() {
+		availableResourcesName = append(availableResourcesName, r.Name)
+	}
+
+	for _, m := range adm.GetMenus() {
+		if !Contains(availableResourcesName, m.Name) && !Contains(availableResourcesName, inflection.Singular(m.Name)) {
+			availableResourcesName = append(availableResourcesName, m.Name)
+		}
+	}
+
+	for _, resName := range resourceList {
+		if !Contains(availableResourcesName, resName) {
+			panic(fmt.Sprintf("given resource '%s' cannot be found. Available names are '%q'. Make sure RegisterGroup is executed AFTER all the resource and menu get registered", resName, availableResourcesName))
+		}
+	}
 }

@@ -28,6 +28,7 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 
 	Admin.AddResource(&Company{})
 	Admin.AddResource(&CreditCard{})
+	Admin.AddMenu(&admin.Menu{Name: "ExternalURL"})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "语种 & 语言", Priority: -1})
 	user := Admin.AddResource(&User{})
