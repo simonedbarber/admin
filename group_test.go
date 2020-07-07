@@ -64,6 +64,7 @@ func TestIndividualNoPermissionMenu(t *testing.T) {
 	if !noPermissionMenu.HasPermission(roles.Read, ctx) {
 		t.Error("individual menu with no permission set should be accessible when group permission is not enabled")
 	}
+	Admin.SetGroupEnabled(true)
 }
 
 func TestGroupMenuPermissionShouldHasLowerPriorityThanRole(t *testing.T) {
@@ -85,26 +86,27 @@ func TestGroupMenuPermissionShouldHasLowerPriorityThanRole(t *testing.T) {
 
 func TestGroupRouterPermission(t *testing.T) {
 	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: "admin"}
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,CreditCard"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,Credit Card"}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	// TODO: C R U D should all be test covered.
-	req, err := http.Get(server.URL + "/admin/companies")
+	resp, err := http.Get(server.URL + "/admin/companies")
 	utils.AssertNoErr(t, err)
 
-	if req.StatusCode != 200 {
+	if resp.StatusCode != 200 {
 		t.Errorf("Expect user with group permission to have the ability to visit companies")
 	}
 
-	group.AllowList = "CreditCard"
+	group.AllowList = "Credit Card"
 	utils.AssertNoErr(t, db.Save(&group).Error)
-	req, err = http.Get(server.URL + "/admin/companies")
+
+	resp, err = http.Get(server.URL + "/admin/companies")
 	utils.AssertNoErr(t, err)
 
-	if req.StatusCode != 404 {
+	if resp.StatusCode != 404 {
 		t.Errorf("Expect user without group permission not have the ability to visit companies")
 	}
 }
