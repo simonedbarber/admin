@@ -3,6 +3,7 @@ package admin
 import (
 	"strings"
 
+	"github.com/qor/qor"
 	"github.com/qor/roles"
 )
 
@@ -52,14 +53,16 @@ func (handler routeHandler) HasPermission(permissionMode roles.PermissionMode, c
 		return true
 	}
 
+	if context.Admin.IsGroupEnabled() && handler.Config.Resource != nil {
+		result = IsResourceAllowed(context, handler.Config.Resource.Name)
+	}
+
 	if handler.Config.PermissionMode != "" {
+		// When group is enabled, resource with no Permission set will no longer return true. But return group permission result instead.
+		context.Context.Config = &qor.Config{GroupPermissionEnabled: true, GroupPermissionResult: result}
 		result = handler.Config.Permissioner.HasPermission(handler.Config.PermissionMode, context.Context)
 	} else {
 		result = handler.Config.Permissioner.HasPermission(permissionMode, context.Context)
-	}
-
-	if result && context.Admin.IsGroupEnabled() && handler.Config.Resource != nil {
-		result = IsResourceAllowed(context, handler.Config.Resource.Name)
 	}
 
 	return
