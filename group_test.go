@@ -29,12 +29,6 @@ func TestGroupMenuPermission(t *testing.T) {
 		t.Error("user should have permission to access allowed Company resource")
 	}
 
-	// Check no permission menu
-	noPermissionMenu := Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin", Priority: 1})
-	if !noPermissionMenu.HasPermission(roles.Read, ctx) {
-		t.Error("menu with no permission set should be always accessible")
-	}
-
 	// check no group permission menu
 	group.AllowList = ""
 	utils.AssertNoErr(t, db.Save(&group).Error)
@@ -45,6 +39,30 @@ func TestGroupMenuPermission(t *testing.T) {
 	individualMenuWithPermission := Admin.AddMenu(&admin.Menu{Name: "ExternalURL", Permission: roles.Allow(roles.CRUD, Role_developer)})
 	if individualMenuWithPermission.HasPermission(roles.Read, ctx) {
 		t.Error("admin user should not have permission to access menu which is visible to Developer only")
+	}
+}
+
+func TestIndividualNoPermissionMenu(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,Credit Card"}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin and current role in context
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Context.Roles = []string{Role_system_administrator}
+
+	// Check no permission menu
+	noPermissionMenu := Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
+	if noPermissionMenu.HasPermission(roles.Read, ctx) {
+		t.Error("individual menu with no permission set should not be accessible without group permission")
+	}
+
+	Admin.SetGroupEnabled(false)
+	if !noPermissionMenu.HasPermission(roles.Read, ctx) {
+		t.Error("individual menu with no permission set should be accessible when group permission is not enabled")
 	}
 }
 

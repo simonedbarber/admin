@@ -3,6 +3,7 @@ package admin
 import (
 	"path"
 
+	"github.com/qor/qor"
 	"github.com/qor/roles"
 )
 
@@ -73,9 +74,9 @@ func (menu Menu) URL() string {
 // HasPermission check menu has permission or not
 func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (result bool) {
 	// When menu has no Permission and Permissioner set, this implicitly means it has no resource associated.
-	// Thus no need to check both role and group permission, just return true
+	// But it also can be controlled by group permission
 	if menu.Permission == nil && menu.Permissioner == nil {
-		return true
+		result = true
 	}
 
 	// Check group permission first, since it has lower priority than roles.
@@ -90,6 +91,8 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 		}
 		result = menu.Permission.HasPermission(mode, roles...)
 	} else if menu.Permissioner != nil {
+		// When group is enabled, resource with no Permission set will no longer return true. But return group permission result instead.
+		context.Context.Config = &qor.Config{GroupPermissionEnabled: true, GroupPermissionResult: result}
 		result = menu.Permissioner.HasPermission(mode, context.Context)
 	}
 
