@@ -3,6 +3,7 @@ package admin_test
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/qor/admin"
@@ -84,29 +85,61 @@ func TestGroupMenuPermissionShouldHasLowerPriorityThanRole(t *testing.T) {
 	}
 }
 
-func TestGroupRouterPermission(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+func TestRouterGroupPermission(t *testing.T) {
+	// Allow to access company test
+	RouterGroupPermissionTest(t, "Company,Credit Card", 200)
+	// Not allowed to access company test
+	RouterGroupPermissionTest(t, "Credit Card", 404)
+}
+
+func RouterGroupPermissionTest(t *testing.T, allowList string, responseCode int) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{}, &Company{})
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,Credit Card"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: allowList}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
-	// TODO: C R U D should all be test covered.
-	resp, err := http.Get(server.URL + "/admin/companies")
-	utils.AssertNoErr(t, err)
+	newCompanyName := "a test company"
 
-	if resp.StatusCode != 200 {
-		t.Errorf("Expect user with group permission to have the ability to visit companies")
+	updatedCompanyName := "a new company"
+	company := Company{Name: "old company"}
+	utils.AssertNoErr(t, db.Save(&company).Error)
+
+	toBeDeletedCompanyName := "a legacy company"
+	toBeDeletedCompany := Company{Name: toBeDeletedCompanyName}
+	utils.AssertNoErr(t, db.Save(&toBeDeletedCompany).Error)
+
+	cases := []struct {
+		desc         string
+		url          string
+		responseCode int
+		formValues   url.Values
+	}{
+		{"read", server.URL + "/admin/companies", responseCode, nil},
+		{"create", server.URL + "/admin/companies", responseCode, url.Values{"QorResource.Name": {newCompanyName}}},
+		{"update", server.URL + fmt.Sprintf("/admin/companies/%d", company.ID), responseCode, url.Values{"QorResource.Name": {updatedCompanyName}}},
+		{"delete", server.URL + fmt.Sprintf("/admin/companies/%d", toBeDeletedCompany.ID), responseCode, url.Values{"_method": {"delete"}}},
 	}
+	for _, c := range cases {
+		t.Run(c.desc, func(t *testing.T) {
+			var (
+				resp *http.Response
+				err  error
+			)
 
-	group.AllowList = "Credit Card"
-	utils.AssertNoErr(t, db.Save(&group).Error)
+			switch c.desc {
+			case "read":
+				resp, err = http.Get(c.url)
+			case "create", "update", "delete":
+				resp, err = http.PostForm(c.url, c.formValues)
+			}
 
-	resp, err = http.Get(server.URL + "/admin/companies")
-	utils.AssertNoErr(t, err)
+			utils.AssertNoErr(t, err)
 
-	if resp.StatusCode != 404 {
-		t.Errorf("Expect user without group permission not have the ability to visit companies")
+			if got, want := resp.StatusCode, c.responseCode; want != got {
+				t.Errorf("expect user with group permission to have %v when %s companies but got %v", want, c.desc, got)
+			}
+		})
 	}
 }
