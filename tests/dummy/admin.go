@@ -51,7 +51,7 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 		},
 	})
 
-	admin.RegisterGroup(Admin, []string{"Company", "Credit Card"}, user, User{})
+	admin.RegisterGroup(Admin, []string{"Company", "Credit Card"}, user, User{}, &admin.Config{Name: "Groups"})
 
 	return Admin
 }

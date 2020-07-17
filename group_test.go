@@ -163,10 +163,10 @@ func TestRegisterUserToGroups(t *testing.T) {
 	utils.AssertNoErr(t, db.First(groupC, groupC.ID).Error)
 
 	if groupA.Users != fmt.Sprintf(",%d", user.ID) {
-		t.Error("user didn't registered in group A")
+		t.Error("user didn't registered in group A", groupA.Users, user.ID)
 	}
 	if groupB.Users != fmt.Sprintf(",%d", user.ID) {
-		t.Error("user didn't registered in group B")
+		t.Error("user didn't registered in group B", groupB.Users, user.ID)
 	}
 	if groupC.Users != "" {
 		t.Error("user incorrectly registered in group C")

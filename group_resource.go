@@ -17,14 +17,18 @@ type UserModel interface {
 	GetUsersByIDs(*gorm.DB, []string) interface{}
 }
 
-func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, userModel UserModel) *Resource {
+func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, userModel UserModel, resConfig *Config) *Resource {
 	ValidateResourceList(adm, resourceList)
 
 	adm.DB.AutoMigrate(&Group{})
 
 	adm.SetGroupEnabled(true)
 
-	group := adm.AddResource(&Group{}, &Config{Name: "Groups"})
+	if resConfig.Name == "" {
+		resConfig.Name = "Groups"
+	}
+
+	group := adm.AddResource(&Group{}, resConfig)
 
 	group.IndexAttrs("ID", "Name", "CreatedAt", "UpdatedAt")
 	group.NewAttrs("Name",
