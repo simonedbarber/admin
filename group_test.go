@@ -143,3 +143,67 @@ func RouterGroupPermissionTest(t *testing.T, allowList string, responseCode int)
 		})
 	}
 }
+
+func TestRegisterUserToGroups(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	groupA := createTestGroup("A")
+	groupB := createTestGroup("B")
+	groupC := createTestGroup("C")
+
+	err := admin.RegisterUserToGroups(db, []uint{groupA.ID, groupB.ID}, &user.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	utils.AssertNoErr(t, db.First(groupA, groupA.ID).Error)
+	utils.AssertNoErr(t, db.First(groupB, groupB.ID).Error)
+	utils.AssertNoErr(t, db.First(groupC, groupC.ID).Error)
+
+	if groupA.Users != fmt.Sprintf(",%d", user.ID) {
+		t.Error("user didn't registered in group A")
+	}
+	if groupB.Users != fmt.Sprintf(",%d", user.ID) {
+		t.Error("user didn't registered in group B")
+	}
+	if groupC.Users != "" {
+		t.Error("user incorrectly registered in group C")
+	}
+}
+
+func TestRegisterUserToGroupsEdgeCases(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	groupA := createTestGroup("A")
+
+	// Empty group ids
+	err := admin.RegisterUserToGroups(db, []uint{}, &user.ID)
+	if err == nil {
+		t.Error("empty group ids doesn't return error")
+	}
+
+	// no user id
+	err1 := admin.RegisterUserToGroups(db, []uint{groupA.ID}, nil)
+	if err1 == nil {
+		t.Error("blank user id doesn't return error")
+	}
+
+	// non-exist groups
+	err2 := admin.RegisterUserToGroups(db, []uint{1000, 1010}, &user.ID)
+	if err2 == nil {
+		t.Error("non-exists group ids doesn't return error")
+	}
+}
+
+func createTestGroup(name string) *admin.Group {
+	group := admin.Group{Name: name}
+	if err := db.Save(&group).Error; err != nil {
+		panic(err)
+	}
+
+	return &group
+}

@@ -138,7 +138,6 @@ func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, u
 // 	}
 // }
 
-// TODO: return as a value to caller. so that it can be used in user resource.
 func initGroupSelectorRes(adm *Admin) *Resource {
 	res := adm.AddResource(&Group{}, &Config{Name: "GroupSelector"})
 	res.SearchAttrs("ID", "Name")

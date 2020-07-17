@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -42,4 +43,45 @@ func allowedResources(db *gorm.DB, uid uint) (result []string) {
 	}
 
 	return
+}
+
+// RegisterUserToGroups register user into groups
+func RegisterUserToGroups(db *gorm.DB, groupIDs []uint, uid *uint) (err error) {
+	if len(groupIDs) == 0 {
+		return errors.New("group ids must be provided")
+	}
+
+	if uid == nil {
+		return errors.New("user id must be provided")
+	}
+
+	idStr := fmt.Sprintf("%d", uid)
+	groups := []Group{}
+	if err = db.Where("id IN (?)", groupIDs).Find(&groups).Error; err != nil {
+		return err
+	}
+
+	if len(groups) == 0 {
+		return fmt.Errorf("no group can be found by given ids %v, please have a check", groupIDs)
+	}
+
+	tx := db.Begin()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	for _, g := range groups {
+		if !Contains(strings.Split(g.Users, ","), idStr) {
+			userIDs := strings.Split(g.Users, ",")
+			userIDs = append(userIDs, idStr)
+			g.Users = strings.Join(userIDs, ",")
+			err = tx.Save(&g).Error
+		}
+	}
+
+	return nil
 }
