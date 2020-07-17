@@ -55,7 +55,7 @@ func RegisterUserToGroups(db *gorm.DB, groupIDs []uint, uid *uint) (err error) {
 		return errors.New("user id must be provided")
 	}
 
-	idStr := fmt.Sprintf("%d", uid)
+	idStr := fmt.Sprintf("%d", *uid)
 	groups := []Group{}
 	if err = db.Where("id IN (?)", groupIDs).Find(&groups).Error; err != nil {
 		return err
