@@ -4,6 +4,17 @@ window.QOR = {
     $formLoading: '<div id="qor-submit-loading" class="clearfix"><div class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div></div>'
 };
 
+String.prototype.escapeSymbol = function() {
+    var tagsToReplace = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;'
+    };
+    return this.replace(/[&<>]/g, function(tag) {
+        return tagsToReplace[tag] || tag;
+    });
+};
+
 // change Mustache tags from {{}} to [[]]
 window.Mustache && (window.Mustache.tags = ['[[', ']]']);
 
