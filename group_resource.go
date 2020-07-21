@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -17,11 +16,11 @@ type UserModel interface {
 	GetUsersByIDs(*gorm.DB, []string) interface{}
 }
 
-func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, userModel UserModel, resConfig *Config) *Resource {
-	ValidateResourceList(adm, resourceList)
-
+// RegisterGroup enable group permission system to admin.
+// IMPORTANT: call this function after all the resource registration.
+// resources registered later than this, will not be managed by group permission system.
+func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, resConfig *Config) *Resource {
 	adm.DB.AutoMigrate(&Group{})
-
 	adm.SetGroupEnabled(true)
 
 	if resConfig.Name == "" {
@@ -29,6 +28,7 @@ func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, u
 	}
 
 	group := adm.AddResource(&Group{}, resConfig)
+	resourceList := GenResourceList(adm)
 
 	group.IndexAttrs("ID", "Name", "CreatedAt", "UpdatedAt")
 	group.NewAttrs("Name",
@@ -79,7 +79,7 @@ func RegisterGroup(adm *Admin, resourceList []string, userSelectRes *Resource, u
 	group.Meta(&Meta{
 		Name: "AllowList",
 		Config: &SelectManyConfig{
-			Collection: resourceList, // TODO: validate resourceList are included in Resource. which means group needs to be registered by the end of the admin registration
+			Collection: resourceList,
 		},
 		Setter: func(record interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 			if g, ok := record.(*Group); ok {
@@ -149,23 +149,29 @@ func initGroupSelectorRes(adm *Admin) *Resource {
 	return res
 }
 
-// ValidateResourceList validates resources or menu name passed in are registered in admin.
-// It will panic immediately if not.
-func ValidateResourceList(adm *Admin, resourceList []string) {
+// GenResourceList collects resources and menus that registered in admin.
+func GenResourceList(adm *Admin) []string {
 	availableResourcesName := []string{}
 	for _, r := range adm.GetResources() {
 		availableResourcesName = append(availableResourcesName, r.Name)
 	}
 
-	for _, m := range adm.GetMenus() {
+	appendMenu := func(m *Menu) {
 		if !Contains(availableResourcesName, m.Name) && !Contains(availableResourcesName, inflection.Singular(m.Name)) {
 			availableResourcesName = append(availableResourcesName, m.Name)
 		}
 	}
 
-	for _, resName := range resourceList {
-		if !Contains(availableResourcesName, resName) {
-			panic(fmt.Sprintf("given resource '%s' cannot be found. Available names are '%q'. Make sure RegisterGroup is executed AFTER all the resource and menu get registered", resName, availableResourcesName))
+	for _, m := range adm.GetMenus() {
+		// when menu has sub menus, it is not to be counted as a resource, when checking permission, if one of its sub menu is granted, the parent menu has permission too.
+		if len(m.GetSubMenus()) != 0 {
+			for _, subMenu := range m.GetSubMenus() {
+				appendMenu(subMenu)
+			}
+		} else {
+			appendMenu(m)
 		}
 	}
+
+	return availableResourcesName
 }

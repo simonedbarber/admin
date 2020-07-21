@@ -14,9 +14,15 @@ func (admin Admin) GetMenus() []*Menu {
 
 // AddMenu add a menu to admin sidebar
 func (admin *Admin) AddMenu(menu *Menu) *Menu {
+	// TODO: Consider warn user for menus larger than 2 levels. since we only support 2 levels menu atm.
+	// if len(menu.Ancestors) > 1 {
+	// 	panic(fmt.Sprintf("QOR admin now only support 2 levels of menu, but got %q", menu.Ancestors))
+	// }
+
 	menu.router = admin.router
 
 	names := append(menu.Ancestors, menu.Name)
+
 	if old := admin.GetMenu(names...); old != nil {
 		if len(names) > 1 || len(old.Ancestors) == 0 {
 			old.Link = menu.Link
@@ -31,6 +37,7 @@ func (admin *Admin) AddMenu(menu *Menu) *Menu {
 	}
 
 	admin.menus = appendMenu(admin.menus, menu.Ancestors, menu)
+
 	return menu
 }
 
@@ -81,6 +88,8 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 
 	// Check group permission first, since it has lower priority than roles.
 	if context.Admin.IsGroupEnabled() {
+		// TODO: if menu has sub menus, we check sub menus permission instead.
+		// if one of the sub menus has permission, then the parent menus has permission too.
 		result = IsResourceAllowed(context, menu.Name)
 	}
 
@@ -127,6 +136,9 @@ func getMenu(menus []*Menu, names ...string) *Menu {
 	return nil
 }
 
+// generateMenu generates menu from the ancestors, only keep the first and last one.
+// E.g. ancestors is []string{"Management", "Product Management"}, menu is "Product".
+// The result would be "Management > Product". QOR only support 2 levels of menu.
 func generateMenu(menus []string, menu *Menu) *Menu {
 	menuCount := len(menus)
 	for index := range menus {
