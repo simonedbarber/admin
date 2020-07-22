@@ -153,6 +153,10 @@ func initGroupSelectorRes(adm *Admin) *Resource {
 func GenResourceList(adm *Admin) []string {
 	availableResourcesName := []string{}
 	for _, r := range adm.GetResources() {
+		if r.Config.SkipGroupControl || r.Config.Invisible {
+			continue
+		}
+
 		availableResourcesName = append(availableResourcesName, r.Name)
 	}
 

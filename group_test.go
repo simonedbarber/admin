@@ -217,6 +217,28 @@ func TestRegisterUserToGroupsEdgeCases(t *testing.T) {
 	}
 }
 
+type Campaign struct {
+	Name string
+}
+
+func TestSkipGroupPermissionResourceRouter(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{}, &Campaign{})
+	Admin.AddResource(&Campaign{}, &admin.Config{SkipGroupControl: true})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: ""}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	resp, err := http.Get(server.URL + "/admin/campaigns")
+
+	utils.AssertNoErr(t, err)
+
+	if got, want := resp.StatusCode, 200; want != got {
+		t.Errorf("expect visit skip group control resource to have %v but got %v", want, got)
+	}
+}
+
 func createTestGroup(name string) *admin.Group {
 	group := admin.Group{Name: name}
 	if err := db.Save(&group).Error; err != nil {

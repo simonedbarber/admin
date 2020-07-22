@@ -35,7 +35,6 @@ func NewTestAdmin() *admin.Admin {
 	)
 
 	for _, value := range models {
-
 		db.AutoMigrate(value)
 	}
 
