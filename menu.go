@@ -12,6 +12,20 @@ func (admin Admin) GetMenus() []*Menu {
 	return admin.menus
 }
 
+// GetAllOffspringMenu returns all the offspring menus of given menu. if given menu has no submenu, return itself.
+func GetAllOffspringMenu(m *Menu) (result []*Menu) {
+	if len(m.GetSubMenus()) == 0 {
+		result = append(result, m)
+		return
+	}
+
+	for _, subM := range m.GetSubMenus() {
+		result = append(result, GetAllOffspringMenu(subM)...)
+	}
+
+	return
+}
+
 // AddMenu add a menu to admin sidebar
 func (admin *Admin) AddMenu(menu *Menu) *Menu {
 	// TODO: Consider warn user for menus larger than 2 levels. since we only support 2 levels menu atm.
