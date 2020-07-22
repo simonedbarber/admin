@@ -102,9 +102,14 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 
 	// Check group permission first, since it has lower priority than roles.
 	if context.Admin.IsGroupEnabled() {
-		// TODO: if menu has sub menus, we check sub menus permission instead.
-		// if one of the sub menus has permission, then the parent menus has permission too.
-		result = IsResourceAllowed(context, menu.Name)
+		// If menu has sub menus, we check sub menus permission instead.
+		// As long as one of the sub menus has permission, then the parent menus has permission too.
+		for _, m := range GetAllOffspringMenu(&menu) {
+			result = IsResourceAllowed(context, m.Name)
+			if result {
+				return true
+			}
+		}
 	}
 
 	if menu.Permission != nil {

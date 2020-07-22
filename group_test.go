@@ -43,6 +43,24 @@ func TestGroupMenuPermission(t *testing.T) {
 	}
 }
 
+func TestGroupNestedMenuPermission(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	Admin.AddMenu(&admin.Menu{Name: "MenuA", Ancestors: []string{"MenuA Father"}})
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,MenuA"}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+
+	nestedMenu := Admin.GetMenu("MenuA Father")
+	if !nestedMenu.HasPermission(roles.Read, ctx) {
+		t.Error("menu with sub menus should have permission when at least one of the sub menu is allowed to access")
+	}
+}
+
 func TestIndividualNoPermissionMenu(t *testing.T) {
 	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
