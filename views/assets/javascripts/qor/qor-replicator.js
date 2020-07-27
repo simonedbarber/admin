@@ -13,6 +13,7 @@
     'use strict';
 
     let _ = window._,
+        QOR = window.QOR,
         NAMESPACE = 'qor.replicator',
         EVENT_ENABLE = 'enable.' + NAMESPACE,
         EVENT_DISABLE = 'disable.' + NAMESPACE,
