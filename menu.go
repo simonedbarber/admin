@@ -121,12 +121,12 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 		// If menu has sub menus, we check sub menus permission instead.
 		// As long as one of the sub menus has permission, then the parent menus has permission too.
 		for _, m := range GetAllOffspringMenu(&menu) {
-			if checkMenuRolePermission(*m, result) {
-				result = true
+			result = IsResourceAllowedByGroup(context, m.Name)
+			if result {
 				break
 			}
 
-			if IsResourceAllowed(context, m.Name) {
+			if checkMenuRolePermission(*m, result) {
 				result = true
 				break
 			}

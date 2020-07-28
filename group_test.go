@@ -66,9 +66,10 @@ func TestNestedMenuRolePermission(t *testing.T) {
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	Admin.AddMenu(&admin.Menu{Name: "MenuA", Ancestors: []string{"MenuA Father"}})
+	Admin.AddMenu(&admin.Menu{Name: "MenuA", Ancestors: []string{"MenuA Father"}, Permission: roles.Allow(roles.CRUD, Role_system_administrator)})
 
 	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Roles = []string{Role_system_administrator}
 
 	nestedMenu := Admin.GetMenu("MenuA Father")
 	if !nestedMenu.HasPermission(roles.Read, ctx) {

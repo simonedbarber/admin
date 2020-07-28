@@ -57,7 +57,7 @@ func (handler routeHandler) HasPermission(permissionMode roles.PermissionMode, c
 		if handler.Config.Resource.Config.SkipGroupControl {
 			result = true
 		} else {
-			result = IsResourceAllowed(context, handler.Config.Resource.Name)
+			result = IsResourceAllowedByGroup(context, handler.Config.Resource.Name)
 		}
 	}
 

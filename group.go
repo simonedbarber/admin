@@ -21,8 +21,8 @@ func (g Group) TableName() string {
 	return "qor_groups"
 }
 
-// IsResourceAllowed checks if current user allowed to access current resource
-func IsResourceAllowed(context *Context, resName string) bool {
+// IsResourceAllowedByGroup checks if current user allowed to access current resource
+func IsResourceAllowedByGroup(context *Context, resName string) bool {
 	uid := context.CurrentUser.GetID()
 	resources := allowedResources(context.DB, uid)
 
