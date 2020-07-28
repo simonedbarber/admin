@@ -100,29 +100,40 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 		result = true
 	}
 
+	checkMenuRolePermission := func(menu Menu, previousResult bool) bool {
+		if menu.Permission != nil {
+			var roles = []interface{}{}
+			for _, role := range context.Roles {
+				roles = append(roles, role)
+			}
+			return menu.Permission.HasPermission(mode, roles...)
+		} else if menu.Permissioner != nil {
+			// When group is enabled, resource with no Permission set will no longer return true. But return group permission result instead.
+			context.Context.Config = &qor.Config{GroupPermissionEnabled: true, GroupPermissionResult: previousResult}
+			return menu.Permissioner.HasPermission(mode, context.Context)
+		}
+
+		return previousResult
+	}
+
 	// Check group permission first, since it has lower priority than roles.
 	if context.Admin.IsGroupEnabled() {
 		// If menu has sub menus, we check sub menus permission instead.
 		// As long as one of the sub menus has permission, then the parent menus has permission too.
 		for _, m := range GetAllOffspringMenu(&menu) {
-			result = IsResourceAllowed(context, m.Name)
-			if result {
-				return true
+			if checkMenuRolePermission(*m, result) {
+				result = true
+				break
+			}
+
+			if IsResourceAllowed(context, m.Name) {
+				result = true
+				break
 			}
 		}
 	}
 
-	if menu.Permission != nil {
-		var roles = []interface{}{}
-		for _, role := range context.Roles {
-			roles = append(roles, role)
-		}
-		result = menu.Permission.HasPermission(mode, roles...)
-	} else if menu.Permissioner != nil {
-		// When group is enabled, resource with no Permission set will no longer return true. But return group permission result instead.
-		context.Context.Config = &qor.Config{GroupPermissionEnabled: true, GroupPermissionResult: result}
-		result = menu.Permissioner.HasPermission(mode, context.Context)
-	}
+	result = checkMenuRolePermission(menu, result)
 
 	return
 }
