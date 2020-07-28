@@ -13,7 +13,7 @@ String.prototype.escapeSymbol = function() {
         "'" : '&#x27;',
         '/' : '&#x2F;'
     };
-    return this.replace(/[&<>]/g, function(tag) {
+    return this.replace(/[&<>"']/g, function(tag) {
         return tagsToReplace[tag] || tag;
     });
 };
