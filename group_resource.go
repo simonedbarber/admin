@@ -111,36 +111,7 @@ func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, res
 	})
 
 	return initGroupSelectorRes(adm)
-	// router := adm.GetRouter()
-	// router.Delete("/groups/:id/delete", deleteGroup)
 }
-
-// func deleteGroup(ctx *admin.Context) {
-// 	id := ctx.Request.URL.Query().Get(":id")
-// 	var group Group
-// 	ctx.DB.New().Model(ctx.Resource.NewStruct()).Where("id = ?", id).Find(&group)
-
-// 	status := http.StatusOK
-// 	var err error
-
-// 	if len(group.GetUserIDs()) > 0 {
-// 		err = errors.New("cannot delete non-empty group")
-// 		ctx.AddError(err)
-// 		status = http.StatusUnprocessableEntity
-// 	} else {
-// 		if err = ctx.DB.New().Delete(&group).Error; err != nil {
-// 			err = errors.New("delete error")
-// 			ctx.AddError(err)
-// 			status = http.StatusUnprocessableEntity
-// 		}
-// 	}
-// 	ctx.Writer.WriteHeader(status)
-// 	if err != nil {
-// 		ctx.Encode("OK", map[string]interface{}{"errors": err.Error()})
-// 	} else {
-// 		ctx.Encode("OK", map[string]interface{}{"status": "ok"})
-// 	}
-// }
 
 func initGroupSelectorRes(adm *Admin) *Resource {
 	res := adm.AddResource(&Group{}, &Config{Name: "GroupSelector"})
