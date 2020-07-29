@@ -17,8 +17,8 @@ type UserModel interface {
 }
 
 // RegisterGroup enable group permission system to admin.
-// IMPORTANT: call this function after all the resource registration.
-// resources registered later than this, will not be managed by group permission system.
+// IMPORTANT: resources registered later than this, will not be managed by group permission system.
+// So call this function after all the resources that you want to managed by group are registered
 func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, resConfig *Config) *Resource {
 	adm.DB.AutoMigrate(&Group{})
 	adm.SetGroupEnabled(true)

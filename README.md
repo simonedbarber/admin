@@ -91,7 +91,10 @@ func (u User) GetUsersByIDs(db *gorm.DB, ids []string) interface{}
 func (u User) GetID() uint
 ```
 
-Then enable group permission in admin
+Then enable group permission in admin.
+IMPORTANT: resources registered later than this, will not be managed by group permission system. So call this function after all the resources that you want to managed by group are registered
+
+
 ```go
 // adm is a qor admin instance
 // InitUserSelectorRes(adm) returns an *admin.Resource of user for selector, an example attached below
