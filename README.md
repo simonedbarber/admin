@@ -76,6 +76,55 @@ func main() {
 
 <https://doc.getqor.com/admin>
 
+### Group permission system.
+
+QOR Admin already has a "role" system to control permission. However, it can only be managed by the developer with hardcoded configuration. The group permission system aim to let admin users can manage permissions at runtime. Once group system is enabled, user with no group permission cannot see or operate the resource unless it has proper role to access it.
+
+#### Usage
+
+To use group permission, First, you should enable Authentication system of QOR Admin and the "user" model should implements these two interfaces.
+
+```go
+// GetUsersByIDs is used for group's user selector, it should return user list by given user ids.
+func (u User) GetUsersByIDs(db *gorm.DB, ids []string) interface{}
+// GetID returns user's id for permission check
+func (u User) GetID() uint
+```
+
+Then enable group permission in admin
+```go
+// adm is a qor admin instance
+// InitUserSelectorRes(adm) returns an *admin.Resource of user for selector, an example attached below
+// User{} is the "user" struct
+// Last one is config. We recommend to set permission to this group like this, so that the initial user with role "Developer" could access group at the beginning. the permission check logic between role and group permission will be explained later.
+admin.RegisterGroup(adm, InitUserSelectorRes(adm), User{}, &admin.Config{Name: "Groups", Permission: roles.Allow(roles.CRUD, "Developer")})
+
+func InitUserSelectorRes(adm *admin.Admin) *admin.Resource {
+    // SkipGroupControl makes this resource invisible in resource list selector of group
+    res := adm.AddResource(&User{}, &admin.Config{Name: "UserSelector", SkipGroupControl: true})
+    res.SearchAttrs("ID", "Name")
+    searchHander := res.SearchHandler
+    res.SearchHandler = func(keyword string, ctx *qor.Context) *gorm.DB {
+      ctx.SetDB(ctx.DB.Where("role <> ? AND role <> ?", Role_developer))
+      return searchHander(keyword, ctx)
+    }
+    // This hide menu from the sidebar and group resource list selector
+    adm.GetMenu("UserSelectors").Invisible = true
+
+    return res
+}
+```
+
+And that's it, login to QOR Admin, you should see Group is there.
+
+#### How to integrate group into user form
+If you want to set user's group in user edit form, The `admin.RegisterGroup` returns a group selector resource and a function `func RegisterUserToGroups(db *gorm.DB, groupIDs []uint, uid *uint) (err error)` can register user into groups.
+
+#### The permission check logic about role and group permission.
+In short, The role always has higher priority than group permission.
+If ResourceA allow role "Developer" to access, UserA is a "Developer" but does not belong to any group. UserA still can access ResourceA.
+But if UserA is a "Editor", UserA cannot access ResourceA.
+
 ## License
 
 Released under the [MIT License](http://opensource.org/licenses/MIT).
