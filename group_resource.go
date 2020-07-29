@@ -163,6 +163,10 @@ func GenResourceList(adm *Admin) []string {
 	for _, m := range adm.GetMenus() {
 		// when menu has sub menus, it is not to be counted as a resource, when checking permission, if one of its sub menu is granted, the parent menu has permission too.
 		for _, offspringMenu := range GetAllOffspringMenu(m) {
+			if m.Invisible {
+				continue
+			}
+
 			if !Contains(availableResourcesName, offspringMenu.Name) && !Contains(availableResourcesName, inflection.Singular(offspringMenu.Name)) {
 				availableResourcesName = append(availableResourcesName, offspringMenu.Name)
 			}

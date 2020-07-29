@@ -757,6 +757,10 @@ func (context *Context) getMenus() (menus []*menu) {
 
 	addMenu = func(parent *menu, menus []*Menu) {
 		for _, m := range menus {
+			if m.Invisible {
+				continue
+			}
+
 			url := m.URL()
 			if m.HasPermission(roles.Read, context) {
 				var menu = &menu{Menu: m}

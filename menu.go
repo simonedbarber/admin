@@ -74,6 +74,7 @@ type Menu struct {
 	Ancestors    []string
 	Permissioner HasPermissioner
 	Permission   *roles.Permission
+	Invisible    bool
 
 	subMenus []*Menu
 	router   *Router
