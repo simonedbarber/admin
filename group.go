@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,9 +14,55 @@ import (
 type Group struct {
 	gorm.Model
 
-	Name      string
-	Users     string
-	AllowList string
+	Name           string
+	Users          string
+	AllowList      string
+	AllowedActions string
+
+	ResourcePermissions ResourcePermissions `sql:"type:text;"`
+}
+
+type ResourcePermissions []ResourcePermission
+
+type ResourcePermission struct {
+	Name    string
+	Allowed bool
+	Actions []ResourceActionPermission
+}
+
+type ResourceActionPermission struct {
+	Name    string
+	Allowed bool
+}
+
+func (g Group) HasResourcePermission(name string) bool {
+	for _, res := range g.ResourcePermissions {
+		if res.Name == name && res.Allowed {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Scan scan value from database into struct
+func (rp *ResourcePermissions) Scan(value interface{}) error {
+	if bytes, ok := value.([]byte); ok {
+		json.Unmarshal(bytes, rp)
+	} else if str, ok := value.(string); ok {
+		json.Unmarshal([]byte(str), rp)
+	} else if strs, ok := value.([]string); ok {
+		for _, str := range strs {
+			json.Unmarshal([]byte(str), rp)
+		}
+	}
+	return nil
+}
+
+// Value get value from struct, and save into database
+func (rp ResourcePermissions) Value() (driver.Value, error) {
+	result, err := json.Marshal(rp)
+	return string(result), err
 }
 
 func (g Group) TableName() string {

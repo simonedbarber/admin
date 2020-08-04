@@ -17,8 +17,8 @@ type UserModel interface {
 }
 
 // RegisterGroup enable group permission system to admin.
-// IMPORTANT: resources registered later than this, will not be managed by group permission system.
-// So call this function after all the resources that you want to managed by group are registered
+// IMPORTANT: call this function after all the resource registration.
+// resources registered later than this, will not be managed by group permission system.
 func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, resConfig *Config) *Resource {
 	adm.DB.AutoMigrate(&Group{})
 	adm.SetGroupEnabled(true)
@@ -35,10 +35,10 @@ func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, res
 		&Section{
 			Title: "Resource Permission",
 			Rows: [][]string{
-				{"AllowList"},
+				{"ResourcePermissions"},
 			}},
 		&Section{
-			Title: "Select people to this group",
+			Title: "People in this group",
 			Rows: [][]string{
 				{"Users"},
 			}})
@@ -46,10 +46,10 @@ func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, res
 		&Section{
 			Title: "Resource Permission",
 			Rows: [][]string{
-				{"AllowList"},
+				{"ResourcePermissions"},
 			}},
 		&Section{
-			Title: "people in this group",
+			Title: "People in this group",
 			Rows: [][]string{
 				{"Users"},
 			}})
@@ -76,28 +76,25 @@ func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, res
 		},
 	})
 
-	group.Meta(&Meta{
-		Name: "AllowList",
-		Config: &SelectManyConfig{
-			Collection: resourceList,
-		},
-		Setter: func(record interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-			if g, ok := record.(*Group); ok {
-				allowedResources := utils.ToArray(metaValue.Value)
-				g.AllowList = strings.Join(allowedResources, ",")
-			}
-		},
+	group.Meta(&Meta{Name: "Name", Label: "Group Name"})
+	group.Meta(&Meta{Name: "AllowedActions", Label: "Actions", Type: "group_selector"})
+	group.Meta(&Meta{Name: "ResourcePermissions", Label: "Resource Permissions", Type: "group_permission",
 		Valuer: func(record interface{}, context *qor.Context) interface{} {
 			if g, ok := record.(*Group); ok {
-				allowedResources := strings.Split(g.AllowList, ",")
+				results := []ResourcePermission{}
+				for _, r := range resourceList {
+					acs := []ResourceActionPermission{}
+					acs = append(acs, ResourceActionPermission{Name: "Publish", Allowed: false})
+					rp := ResourcePermission{Name: r, Allowed: g.HasResourcePermission(r), Actions: acs}
+					results = append(results, rp)
+				}
 
-				return allowedResources
+				return results
 			}
 
 			return nil
 		},
 	})
-	group.Meta(&Meta{Name: "Name", Label: "Group Name"})
 
 	group.AddValidator(&resource.Validator{
 		Handler: func(value interface{}, metaValues *resource.MetaValues, ctx *qor.Context) error {
