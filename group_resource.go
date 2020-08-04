@@ -82,10 +82,18 @@ func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, res
 		Valuer: func(record interface{}, context *qor.Context) interface{} {
 			if g, ok := record.(*Group); ok {
 				results := []ResourcePermission{}
+
 				for _, r := range resourceList {
 					acs := []ResourceActionPermission{}
-					acs = append(acs, ResourceActionPermission{Name: "Publish", Allowed: false})
-					rp := ResourcePermission{Name: r, Allowed: g.HasResourcePermission(r), Actions: acs}
+					for i, resourceAction := range r {
+						// the first element of the slice is ResourceName, we only need actions here.
+						if i == 0 {
+							continue
+						}
+						acs = append(acs, ResourceActionPermission{Name: resourceAction, Allowed: g.HasResourceActionPermission(r[0], resourceAction)})
+					}
+
+					rp := ResourcePermission{Name: r[0], Allowed: g.HasResourcePermission(r[0]), Actions: acs}
 					results = append(results, rp)
 				}
 
@@ -117,15 +125,22 @@ func initGroupSelectorRes(adm *Admin) *Resource {
 	return res
 }
 
-// GenResourceList collects resources and menus that registered in admin.
-func GenResourceList(adm *Admin) []string {
-	availableResourcesName := []string{}
+// GenResourceList collects resources with actions and menus that registered in admin.
+// [][]string{resourceName, action1Name, action2Name}
+func GenResourceList(adm *Admin) [][]string {
+	availableResourcesName := [][]string{}
 	for _, r := range adm.GetResources() {
 		if r.Config.SkipGroupControl || r.Config.Invisible {
 			continue
 		}
 
-		availableResourcesName = append(availableResourcesName, r.Name)
+		actionNames := []string{}
+		for _, acts := range r.GetActions() {
+			actionNames = append(actionNames, acts.Name)
+		}
+		resourceDetail := []string{r.Name}
+		resourceDetail = append(resourceDetail, actionNames...)
+		availableResourcesName = append(availableResourcesName, resourceDetail)
 	}
 
 	for _, m := range adm.GetMenus() {
@@ -136,7 +151,7 @@ func GenResourceList(adm *Admin) []string {
 			}
 
 			if !Contains(availableResourcesName, offspringMenu.Name) && !Contains(availableResourcesName, inflection.Singular(offspringMenu.Name)) {
-				availableResourcesName = append(availableResourcesName, offspringMenu.Name)
+				availableResourcesName = append(availableResourcesName, []string{offspringMenu.Name})
 			}
 		}
 	}

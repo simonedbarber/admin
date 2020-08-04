@@ -29,11 +29,11 @@
 
           {{range $i, $actionValue := $value.Actions }}
             <div class="qor-field">
-              <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
+              <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" id="Resource-{{$index}}-Action-{{$i}}-{{$value.Name}}">
                 <span class="qor-field__label mdl-checkbox__label">{{$actionValue.Name}}</span>
 
                 <span class="qor-field__edit">
-                  <input type="checkbox" name="QorResource.ResourcePermissions[{{$index}}].Actions[{{$i}}].Allowed" class="mdl-checkbox__input" value="true" type="checkbox" {{if $value.Allowed}}checked{{end}}>
+                  <input type="checkbox" id="Resource-{{$index}}-Action-{{$i}}-{{$value.Name}}" name="QorResource.ResourcePermissions[{{$index}}].Actions[{{$i}}].Allowed" class="mdl-checkbox__input" value="true" type="checkbox" {{if $actionValue.Allowed}}checked{{end}}>
                   <input type="hidden" name="QorResource.ResourcePermissions[{{$index}}].Actions[{{$i}}].Allowed" value="false">
                   <input type="hidden" name="QorResource.ResourcePermissions[{{$index}}].Actions[{{$i}}].Name" value={{$actionValue.Name}}>
                 </span>
