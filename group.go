@@ -45,6 +45,20 @@ func (g Group) HasResourcePermission(name string) bool {
 	return false
 }
 
+func (g Group) HasResourceActionPermission(resName string, actionName string) bool {
+	for _, res := range g.ResourcePermissions {
+		if res.Name == resName && res.Allowed {
+			for _, resAction := range res.Actions {
+				if resAction.Name == actionName && resAction.Allowed {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
 // Scan scan value from database into struct
 func (rp *ResourcePermissions) Scan(value interface{}) error {
 	if bytes, ok := value.([]byte); ok {

@@ -129,6 +129,7 @@ func initGroupSelectorRes(adm *Admin) *Resource {
 // [][]string{resourceName, action1Name, action2Name}
 func GenResourceList(adm *Admin) [][]string {
 	availableResourcesName := [][]string{}
+	resourceNames := []string{}
 	for _, r := range adm.GetResources() {
 		if r.Config.SkipGroupControl || r.Config.Invisible {
 			continue
@@ -141,6 +142,7 @@ func GenResourceList(adm *Admin) [][]string {
 		resourceDetail := []string{r.Name}
 		resourceDetail = append(resourceDetail, actionNames...)
 		availableResourcesName = append(availableResourcesName, resourceDetail)
+		resourceNames = append(resourceNames, r.Name)
 	}
 
 	for _, m := range adm.GetMenus() {
@@ -150,7 +152,7 @@ func GenResourceList(adm *Admin) [][]string {
 				continue
 			}
 
-			if !Contains(availableResourcesName, offspringMenu.Name) && !Contains(availableResourcesName, inflection.Singular(offspringMenu.Name)) {
+			if !Contains(resourceNames, offspringMenu.Name) && !Contains(resourceNames, inflection.Singular(offspringMenu.Name)) {
 				availableResourcesName = append(availableResourcesName, []string{offspringMenu.Name})
 			}
 		}
