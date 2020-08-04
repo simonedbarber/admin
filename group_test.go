@@ -14,12 +14,32 @@ import (
 	"github.com/qor/roles"
 )
 
+func genResourcePermissions(resourceList [][]string) admin.ResourcePermissions {
+	results := []admin.ResourcePermission{}
+
+	for _, r := range resourceList {
+		acs := []admin.ResourceActionPermission{}
+		for i, resourceAction := range r {
+			// the first element of the slice is ResourceName, we only need actions here.
+			if i == 0 {
+				continue
+			}
+			acs = append(acs, admin.ResourceActionPermission{Name: resourceAction, Allowed: true})
+		}
+
+		rp := admin.ResourcePermission{Name: r[0], Allowed: true, Actions: acs}
+		results = append(results, rp)
+	}
+
+	return results
+}
+
 func TestGroupMenuPermission(t *testing.T) {
 	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,Credit Card"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company"}, {"Credit Card"}})}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	// setup Admin
@@ -31,7 +51,7 @@ func TestGroupMenuPermission(t *testing.T) {
 	}
 
 	// check no group permission menu
-	group.AllowList = ""
+	group.ResourcePermissions = admin.ResourcePermissions{}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 	if companyMenu.HasPermission(roles.Read, ctx) {
 		t.Error("user should not have permission to access company when it is not allowed")
@@ -50,7 +70,7 @@ func TestGroupNestedMenuPermission(t *testing.T) {
 
 	Admin.AddMenu(&admin.Menu{Name: "MenuA", Ancestors: []string{"MenuA Father"}})
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,MenuA"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company"}, {"MenuA"}})}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
@@ -82,7 +102,7 @@ func TestIndividualNoPermissionMenu(t *testing.T) {
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: "Company,Credit Card"}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company"}, {"Credit Card"}})}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	// setup Admin and current role in context
@@ -121,17 +141,17 @@ func TestGroupMenuPermissionShouldHasLowerPriorityThanRole(t *testing.T) {
 
 func TestRouterGroupPermission(t *testing.T) {
 	// Allow to access company test
-	RouterGroupPermissionTest(t, "Company,Credit Card", 200)
+	RouterGroupPermissionTest(t, [][]string{{"Company"}, {"Credit Card"}}, 200)
 	// Not allowed to access company test
-	RouterGroupPermissionTest(t, "Credit Card", 404)
+	RouterGroupPermissionTest(t, [][]string{{"Credit Card"}}, 404)
 }
 
-func RouterGroupPermissionTest(t *testing.T, allowList string, responseCode int) {
+func RouterGroupPermissionTest(t *testing.T, resourcePermissions [][]string, responseCode int) {
 	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{}, &Company{})
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: allowList}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions(resourcePermissions)}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	newCompanyName := "a test company"
@@ -243,7 +263,7 @@ func TestSkipGroupPermissionResourceRouter(t *testing.T) {
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), AllowList: ""}
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID)}
 	utils.AssertNoErr(t, db.Save(&group).Error)
 
 	resp, err := http.Get(server.URL + "/admin/campaigns")

@@ -77,7 +77,6 @@ func RegisterGroup(adm *Admin, userSelectRes *Resource, userModel UserModel, res
 	})
 
 	group.Meta(&Meta{Name: "Name", Label: "Group Name"})
-	group.Meta(&Meta{Name: "AllowedActions", Label: "Actions", Type: "group_selector"})
 	group.Meta(&Meta{Name: "ResourcePermissions", Label: "Resource Permissions", Type: "group_permission",
 		Valuer: func(record interface{}, context *qor.Context) interface{} {
 			if g, ok := record.(*Group); ok {

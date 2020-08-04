@@ -14,10 +14,8 @@ import (
 type Group struct {
 	gorm.Model
 
-	Name           string
-	Users          string
-	AllowList      string
-	AllowedActions string
+	Name  string
+	Users string
 
 	ResourcePermissions ResourcePermissions `sql:"type:text;"`
 }
@@ -43,6 +41,10 @@ func (g Group) HasResourcePermission(name string) bool {
 	}
 
 	return false
+}
+
+func (g Group) IncludeUserID(uid string) bool {
+	return Contains(strings.Split(g.Users, ","), uid)
 }
 
 func (g Group) HasResourceActionPermission(resName string, actionName string) bool {
@@ -83,24 +85,44 @@ func (g Group) TableName() string {
 	return "qor_groups"
 }
 
-// IsResourceAllowedByGroup checks if current user allowed to access current resource
-func IsResourceAllowedByGroup(context *Context, resName string) bool {
-	uid := context.CurrentUser.GetID()
-	resources := allowedResources(context.DB, uid)
+const (
+	permissionTypeResource = "resource"
+	permissionTypeAction   = "action"
+)
 
-	return Contains(resources, inflection.Singular(resName))
+// IsAllowedByGroup checks if current user allowed to access given resource
+func IsAllowedByGroup(context *Context, resName string) bool {
+	return checkPermission(context, resName, "", permissionTypeResource)
 }
 
-func allowedResources(db *gorm.DB, uid uint) (result []string) {
+// ActionAllowedByGroup checks if current user allowed to access given action of given resource
+func ActionAllowedByGroup(context *Context, resName string, actionName string) bool {
+	return checkPermission(context, resName, actionName, permissionTypeAction)
+}
+
+func checkPermission(context *Context, resName string, actionName string, permissionType string) (result bool) {
+	uid := context.CurrentUser.GetID()
+	db := context.DB
+	rName := inflection.Singular(resName)
+
 	idStr := fmt.Sprintf("%d", uid)
 	groups := []Group{}
 	if err := db.Find(&groups).Error; err != nil {
-		return
+		return false
 	}
 
 	for _, g := range groups {
-		if g.Users != "" && g.AllowList != "" && Contains(strings.Split(g.Users, ","), idStr) {
-			result = append(result, strings.Split(g.AllowList, ",")...)
+		if len(g.ResourcePermissions) != 0 && g.IncludeUserID(idStr) {
+			switch permissionType {
+			case permissionTypeResource:
+				result = g.HasResourcePermission(rName)
+			case permissionTypeAction:
+				result = g.HasResourceActionPermission(rName, actionName)
+			}
+
+			if result {
+				break
+			}
 		}
 	}
 
