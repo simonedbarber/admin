@@ -165,6 +165,7 @@ func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Conte
 		for _, role := range context.Roles {
 			roles = append(roles, role)
 		}
+
 		result = action.Permission.HasPermission(mode, roles...)
 	}
 

@@ -38,6 +38,24 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 		},
 		Modes: []string{"edit"},
 	})
+	c.Action(&admin.Action{
+		Name:       "Preview",
+		Permission: roles.Deny(roles.Read, Role_system_administrator),
+		Handler: func(argument *admin.ActionArgument) (err error) {
+			fmt.Println("Preview company")
+			return
+		},
+		Modes: []string{"edit"},
+	})
+	c.Action(&admin.Action{
+		Name:       "Approve",
+		Permission: roles.Allow(roles.Read, Role_system_administrator),
+		Handler: func(argument *admin.ActionArgument) (err error) {
+			fmt.Println("Approve company")
+			return
+		},
+		Modes: []string{"edit"},
+	})
 	Admin.AddResource(&CreditCard{})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "语种 & 语言", Priority: -1})

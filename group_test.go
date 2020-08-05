@@ -276,7 +276,6 @@ func TestSkipGroupPermissionResourceRouter(t *testing.T) {
 }
 
 func TestActionIsAllowed(t *testing.T) {
-	// func (action Action) HasPermission(mode roles.PermissionMode, context *Context) (result bool) {
 	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
 	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
 	utils.AssertNoErr(t, db.Save(&user).Error)
@@ -288,15 +287,42 @@ func TestActionIsAllowed(t *testing.T) {
 	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
 	actionPublish := Admin.GetResource("Company").GetAction("Publish")
 
-	if !actionPublish.IsAllowed("edit", ctx) {
+	if !actionPublish.IsAllowed(roles.Read, ctx) {
 		t.Error("action should have permission")
 	}
 
 	// check no group permission menu
 	group.ResourcePermissions = genResourcePermissions([][]string{{"Company"}, {"Credit Card"}})
 	utils.AssertNoErr(t, db.Save(&group).Error)
-	if actionPublish.IsAllowed("edit", ctx) {
+	if actionPublish.IsAllowed(roles.Read, ctx) {
 		t.Error("user should not have permission to access publish action when it is not allowed")
+	}
+}
+
+func TestActionIsAllowedWorkWithRolePermission(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview"}, {"Credit Card"}})}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Roles = []string{Role_system_administrator}
+	actionPreview := Admin.GetResource("Company").GetAction("Preview")
+
+	if actionPreview.IsAllowed(roles.Read, ctx) {
+		t.Error("action should not have permission when group is allowed but role denied. role has higher power")
+	}
+
+	// group permission NOT allowed but role allowed
+	group.ResourcePermissions = genResourcePermissions([][]string{{"Company"}, {"Credit Card"}})
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	actionApprove := Admin.GetResource("Company").GetAction("Approve")
+	if !actionApprove.IsAllowed(roles.Read, ctx) {
+		t.Error("user should have permission on action when group is not allowed but role is allowed")
 	}
 }
 
