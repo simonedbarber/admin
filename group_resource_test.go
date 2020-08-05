@@ -1,6 +1,7 @@
 package admin_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/jinzhu/gorm"
@@ -25,6 +26,10 @@ func TestGenResourceList(t *testing.T) {
 	if !flag {
 		t.Error("lack of expected resource in the result")
 	}
+
+	if len(result[0]) != 3 || !admin.Contains(result[0], "Publish") {
+		t.Errorf("expect to have %v but got %v", []string{"Product", "Delete", "Publish"}, result[0])
+	}
 }
 
 func NewTestAdmin() *admin.Admin {
@@ -38,7 +43,26 @@ func NewTestAdmin() *admin.Admin {
 		db.AutoMigrate(value)
 	}
 
-	adm.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+	res := adm.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+	res.Action(&admin.Action{
+		Name: "Publish",
+		Handler: func(argument *admin.ActionArgument) (err error) {
+			fmt.Println("Publish company")
+			return
+		},
+		Method: "GET",
+		Modes:  []string{"edit"},
+	})
+	res.Action(&admin.Action{
+		Name: "Approve",
+		Handler: func(argument *admin.ActionArgument) (err error) {
+			fmt.Println("Publish company")
+			return
+		},
+		Method:           "GET",
+		SkipGroupControl: true,
+		Modes:            []string{"edit"},
+	})
 	adm.AddResource(&Collection{}, &admin.Config{Menu: []string{"Product Management"}})
 	adm.AddResource(&News{}, &admin.Config{Name: "FakeNews"})
 

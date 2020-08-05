@@ -36,7 +36,8 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 			fmt.Println("Publish company")
 			return
 		},
-		Modes: []string{"edit"},
+		Method: "GET",
+		Modes:  []string{"edit"},
 	})
 	c.Action(&admin.Action{
 		Name:       "Preview",
@@ -45,7 +46,8 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 			fmt.Println("Preview company")
 			return
 		},
-		Modes: []string{"edit"},
+		Method: "GET",
+		Modes:  []string{"edit"},
 	})
 	c.Action(&admin.Action{
 		Name:       "Approve",
@@ -54,7 +56,8 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 			fmt.Println("Approve company")
 			return
 		},
-		Modes: []string{"edit"},
+		Method: "GET",
+		Modes:  []string{"edit"},
 	})
 	Admin.AddResource(&CreditCard{})
 

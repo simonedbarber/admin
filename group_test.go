@@ -326,6 +326,58 @@ func TestActionIsAllowedWorkWithRolePermission(t *testing.T) {
 	}
 }
 
+func TestSkipGroupControlAction(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Publish"}, {"Credit Card"}})}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	res := Admin.GetResource("Credit Card")
+	actionPublish := res.Action(&admin.Action{
+		Name: "Publish",
+		Handler: func(argument *admin.ActionArgument) (err error) {
+			fmt.Println("Publish company")
+			return
+		},
+		Method:           "GET",
+		SkipGroupControl: true,
+		Modes:            []string{"edit"},
+	})
+
+	if !actionPublish.IsAllowed(roles.Read, ctx) {
+		t.Error("action should have permission when skipped group control")
+	}
+}
+
+func TestAllowedActions(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}})}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Roles = []string{Role_system_administrator}
+	var fakeRecord interface{}
+	actions := Admin.GetResource("Company").GetActions()
+
+	allowedActions := ctx.AllowedActions(actions, "edit", fakeRecord)
+	results := []string{}
+	for _, a := range allowedActions {
+		results = append(results, a.Name)
+	}
+
+	if len(results) != 2 || !admin.Contains(results, "Publish") || !admin.Contains(results, "Approve") {
+		t.Error("allowed action is not correct")
+	}
+}
+
 func createTestGroup(name string) *admin.Group {
 	group := admin.Group{Name: name}
 	if err := db.Save(&group).Error; err != nil {
