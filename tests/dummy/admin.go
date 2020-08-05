@@ -29,7 +29,15 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 		db.AutoMigrate(value)
 	}
 
-	Admin.AddResource(&Company{})
+	c := Admin.AddResource(&Company{})
+	c.Action(&admin.Action{
+		Name: "Publish",
+		Handler: func(argument *admin.ActionArgument) (err error) {
+			fmt.Println("Publish company")
+			return
+		},
+		Modes: []string{"edit"},
+	})
 	Admin.AddResource(&CreditCard{})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "语种 & 语言", Priority: -1})

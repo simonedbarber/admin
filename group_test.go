@@ -275,6 +275,31 @@ func TestSkipGroupPermissionResourceRouter(t *testing.T) {
 	}
 }
 
+func TestActionIsAllowed(t *testing.T) {
+	// func (action Action) HasPermission(mode roles.PermissionMode, context *Context) (result bool) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Publish"}, {"Credit Card"}})}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	actionPublish := Admin.GetResource("Company").GetAction("Publish")
+
+	if !actionPublish.IsAllowed("edit", ctx) {
+		t.Error("action should have permission")
+	}
+
+	// check no group permission menu
+	group.ResourcePermissions = genResourcePermissions([][]string{{"Company"}, {"Credit Card"}})
+	utils.AssertNoErr(t, db.Save(&group).Error)
+	if actionPublish.IsAllowed("edit", ctx) {
+		t.Error("user should not have permission to access publish action when it is not allowed")
+	}
+}
+
 func createTestGroup(name string) *admin.Group {
 	group := admin.Group{Name: name}
 	if err := db.Save(&group).Error; err != nil {

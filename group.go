@@ -9,6 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
+	"github.com/qor/qor"
 )
 
 type Group struct {
@@ -92,15 +93,15 @@ const (
 
 // IsAllowedByGroup checks if current user allowed to access given resource
 func IsAllowedByGroup(context *Context, resName string) bool {
-	return checkPermission(context, resName, "", permissionTypeResource)
+	return checkPermission(context.Context, resName, "", permissionTypeResource)
 }
 
 // ActionAllowedByGroup checks if current user allowed to access given action of given resource
-func ActionAllowedByGroup(context *Context, resName string, actionName string) bool {
+func ActionAllowedByGroup(context *qor.Context, resName string, actionName string) bool {
 	return checkPermission(context, resName, actionName, permissionTypeAction)
 }
 
-func checkPermission(context *Context, resName string, actionName string, permissionType string) (result bool) {
+func checkPermission(context *qor.Context, resName string, actionName string, permissionType string) (result bool) {
 	uid := context.CurrentUser.GetID()
 	db := context.DB
 	rName := inflection.Singular(resName)

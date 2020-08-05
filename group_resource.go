@@ -136,6 +136,9 @@ func GenResourceList(adm *Admin) [][]string {
 
 		actionNames := []string{}
 		for _, acts := range r.GetActions() {
+			if acts.SkipGroupControl {
+				continue
+			}
 			actionNames = append(actionNames, acts.Name)
 		}
 		resourceDetail := []string{r.Name}

@@ -1175,7 +1175,7 @@ func (context *Context) AllowedActions(actions []*Action, mode string, records .
 					permission = roles.Read
 				}
 
-				if action.isAllowed(permission, context, records...) {
+				if action.IsAllowed(permission, context, records...) {
 					allowedActions = append(allowedActions, action)
 					break
 				}
