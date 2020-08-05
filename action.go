@@ -160,16 +160,31 @@ func (action Action) ToParam() string {
 
 // HasPermission check if current user has permission for the action
 func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Context) (result bool) {
+	// Call this for action route handler permission check.
+	// This will be executed twice if this is called from IsAllowed, but always return same result
+	result = action.HasGroupPermission(context)
+
 	if action.Permission != nil {
 		var roles = []interface{}{}
 		for _, role := range context.Roles {
 			roles = append(roles, role)
 		}
-
 		result = action.Permission.HasPermission(mode, roles...)
 	}
 
 	return
+}
+
+func (action Action) HasGroupPermission(context *qor.Context) bool {
+	if action.GetBelongedResource().GetAdmin().IsGroupEnabled() {
+		if action.SkipGroupControl {
+			return true
+		} else {
+			return ActionAllowedByGroup(context, action.GetBelongedResource().Name, action.Name)
+		}
+	}
+
+	return true
 }
 
 // FindSelectedRecords find selected records when run bulk actions
@@ -221,13 +236,7 @@ func (action Action) IsAllowed(mode roles.PermissionMode, context *Context, reco
 		}
 	}
 
-	if context.Admin.IsGroupEnabled() {
-		if action.SkipGroupControl {
-			result = true
-		} else {
-			result = ActionAllowedByGroup(context.Context, action.GetBelongedResource().Name, action.Name)
-		}
-	}
+	result = action.HasGroupPermission(context.Context)
 
 	if action.Permission != nil {
 		result = action.HasPermission(mode, context.Context)

@@ -378,6 +378,83 @@ func TestAllowedActions(t *testing.T) {
 	}
 }
 
+func TestActionHasPermission(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}})}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Roles = []string{Role_system_administrator}
+	actionPreview := Admin.GetResource("Company").GetAction("Preview")
+	actionPublish := Admin.GetResource("Company").GetAction("Publish")
+
+	if actionPreview.HasPermission(roles.Read, ctx.Context) {
+		t.Error("should not has permission when role is denied")
+	}
+
+	if !actionPublish.HasPermission(roles.Read, ctx.Context) {
+		t.Error("should has permission when permission is not set but group is allowed")
+	}
+
+	Admin.SetGroupEnabled(false)
+	res := Admin.GetResource("Credit Card")
+	actionApprove := res.Action(&admin.Action{
+		Name: "Approve",
+		Handler: func(argument *admin.ActionArgument) (err error) {
+			fmt.Println("Approve company")
+			return
+		},
+		Method: "GET",
+		Modes:  []string{"edit"},
+	})
+
+	if !actionApprove.IsAllowed(roles.Read, ctx) {
+		t.Error("action should have permission when group is disabled")
+	}
+	Admin.SetGroupEnabled(true)
+}
+
+func TestActionRoutePermission(t *testing.T) {
+	// TODO: extract common prepare code
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}})}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Roles = []string{Role_system_administrator}
+	company := Company{Name: "old company"}
+	utils.AssertNoErr(t, db.Save(&company).Error)
+
+	var (
+		resp *http.Response
+		err  error
+	)
+
+	resp, err = http.Get(server.URL + fmt.Sprintf("/admin/companies/%d/publish", company.ID))
+	if err != nil {
+		t.Error("request failed")
+	}
+	if resp.StatusCode != 200 {
+		t.Error("user cannot operate allowed action")
+	}
+
+	resp, err = http.Get(server.URL + fmt.Sprintf("/admin/companies/%d/preview", company.ID))
+	if err != nil {
+		t.Error("request failed")
+	}
+	if resp.StatusCode != 404 {
+		t.Error("user should not be able to operate forbidden action")
+	}
+}
+
 func createTestGroup(name string) *admin.Group {
 	group := admin.Group{Name: name}
 	if err := db.Save(&group).Error; err != nil {

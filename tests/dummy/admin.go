@@ -36,18 +36,20 @@ func NewDummyAdmin(keepData ...bool) *admin.Admin {
 			fmt.Println("Publish company")
 			return
 		},
-		Method: "GET",
-		Modes:  []string{"edit"},
+		Method:   "GET",
+		Resource: c,
+		Modes:    []string{"edit"},
 	})
 	c.Action(&admin.Action{
 		Name:       "Preview",
-		Permission: roles.Deny(roles.Read, Role_system_administrator),
+		Permission: roles.Deny(roles.CRUD, Role_system_administrator),
 		Handler: func(argument *admin.ActionArgument) (err error) {
 			fmt.Println("Preview company")
 			return
 		},
-		Method: "GET",
-		Modes:  []string{"edit"},
+		Method:   "GET",
+		Resource: c,
+		Modes:    []string{"edit"},
 	})
 	c.Action(&admin.Action{
 		Name:       "Approve",
