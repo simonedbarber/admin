@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/aws/aws-sdk-go v1.33.12 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/fatih/color v1.9.0
 	github.com/gorilla/context v1.1.1 // indirect

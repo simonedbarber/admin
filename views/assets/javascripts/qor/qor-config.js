@@ -8,9 +8,12 @@ String.prototype.escapeSymbol = function() {
     var tagsToReplace = {
         '&': '&amp;',
         '<': '&lt;',
-        '>': '&gt;'
+        '>': '&gt;',
+        '"' : '&quot;',
+        "'" : '&#x27;',
+        '/' : '&#x2F;'
     };
-    return this.replace(/[&<>]/g, function(tag) {
+    return this.replace(/[&<>"']/g, function(tag) {
         return tagsToReplace[tag] || tag;
     });
 };
