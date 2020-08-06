@@ -35,15 +35,7 @@ func genResourcePermissions(resourceList [][]string) admin.ResourcePermissions {
 }
 
 func TestGroupMenuPermission(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
-
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	group, ctx := groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company"}, {"Credit Card"}}))
 
 	companyMenu := Admin.GetMenu("Companies")
 	if !companyMenu.HasPermission(roles.Read, ctx) {
@@ -98,16 +90,7 @@ func TestNestedMenuRolePermission(t *testing.T) {
 }
 
 func TestIndividualNoPermissionMenu(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
-
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin and current role in context
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
-	ctx.Context.Roles = []string{Role_system_administrator}
+	_, ctx := groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company"}, {"Credit Card"}}))
 
 	// Check no permission menu
 	noPermissionMenu := Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
@@ -276,15 +259,7 @@ func TestSkipGroupPermissionResourceRouter(t *testing.T) {
 }
 
 func TestActionIsAllowed(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
-
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Publish"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	group, ctx := groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company", "Publish"}, {"Credit Card"}}))
 	actionPublish := Admin.GetResource("Company").GetAction("Publish")
 
 	if !actionPublish.IsAllowed(roles.Read, ctx) {
@@ -300,16 +275,7 @@ func TestActionIsAllowed(t *testing.T) {
 }
 
 func TestActionIsAllowedWorkWithRolePermission(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
-
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
-	ctx.Roles = []string{Role_system_administrator}
+	group, ctx := groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company", "Preview"}, {"Credit Card"}}))
 	actionPreview := Admin.GetResource("Company").GetAction("Preview")
 
 	if actionPreview.IsAllowed(roles.Read, ctx) {
@@ -327,15 +293,7 @@ func TestActionIsAllowedWorkWithRolePermission(t *testing.T) {
 }
 
 func TestSkipGroupControlAction(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
-
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Publish"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	_, ctx := groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company", "Publish"}, {"Credit Card"}}))
 	res := Admin.GetResource("Credit Card")
 	actionPublish := res.Action(&admin.Action{
 		Name: "Publish",
@@ -354,16 +312,7 @@ func TestSkipGroupControlAction(t *testing.T) {
 }
 
 func TestAllowedActions(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
-
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
-	ctx.Roles = []string{Role_system_administrator}
+	_, ctx := groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}}))
 	var fakeRecord interface{}
 	actions := Admin.GetResource("Company").GetActions()
 
@@ -379,16 +328,8 @@ func TestAllowedActions(t *testing.T) {
 }
 
 func TestActionHasPermission(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
+	_, ctx := groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}}))
 
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
-	ctx.Roles = []string{Role_system_administrator}
 	actionPreview := Admin.GetResource("Company").GetAction("Preview")
 	actionPublish := Admin.GetResource("Company").GetAction("Publish")
 
@@ -419,17 +360,7 @@ func TestActionHasPermission(t *testing.T) {
 }
 
 func TestActionRoutePermission(t *testing.T) {
-	// TODO: extract common prepare code
-	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
-	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
-	utils.AssertNoErr(t, db.Save(&user).Error)
-
-	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}})}
-	utils.AssertNoErr(t, db.Save(&group).Error)
-
-	// setup Admin
-	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
-	ctx.Roles = []string{Role_system_administrator}
+	groupTestEnvPrep(t, genResourcePermissions([][]string{{"Company", "Preview", "Publish"}, {"Credit Card"}}))
 	company := Company{Name: "old company"}
 	utils.AssertNoErr(t, db.Save(&company).Error)
 
@@ -453,6 +384,21 @@ func TestActionRoutePermission(t *testing.T) {
 	if resp.StatusCode != 404 {
 		t.Error("user should not be able to operate forbidden action")
 	}
+}
+
+func groupTestEnvPrep(t *testing.T, resourcePermission admin.ResourcePermissions) (admin.Group, *admin.Context) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	group := admin.Group{Name: "test group", Users: fmt.Sprintf("%d", user.ID), ResourcePermissions: resourcePermission}
+	utils.AssertNoErr(t, db.Save(&group).Error)
+
+	// setup Admin
+	ctx := &admin.Context{Context: &qor.Context{CurrentUser: user, DB: Admin.DB}, Admin: Admin, Settings: map[string]interface{}{}}
+	ctx.Roles = []string{Role_system_administrator}
+
+	return group, ctx
 }
 
 func createTestGroup(name string) *admin.Group {
