@@ -2,10 +2,6 @@
 {{$current_values := (raw_value_of .ResourceValue .Meta)}}
 
 <div class="qor-field collection-edit qor-fieldset-container">
-  <label class="qor-field__label" for="{{.InputId}}">
-    {{meta_label .Meta}}
-  </label>
-
   <div class="qor-field__block">
     {{$meta := .Meta}}
     {{if $current_values}}
