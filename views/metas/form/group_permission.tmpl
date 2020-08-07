@@ -23,7 +23,13 @@
             Actions
           </label>
 
+          {{ $flag := 0 }}
           {{range $i, $actionValue := $value.Actions }}
+          {{ if eq (mod $i 2) 0 }}
+          <div class="qor-form-section-rows qor-section-columns-2 clearfix">
+          {{ else }}
+            {{ $flag = 1 }}
+          {{ end }}
             <div class="qor-field">
               <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" id="Resource-{{$index}}-Action-{{$i}}-{{$value.Name}}">
                 <span class="qor-field__label mdl-checkbox__label">{{$actionValue.Name}}</span>
@@ -35,6 +41,10 @@
                 </span>
               </label>
             </div>
+          {{ if eq $flag 1 }}
+          </div>
+          {{ $flag = 0 }}
+          {{ end }}
           {{end}}
         </fieldset>
       {{end}}

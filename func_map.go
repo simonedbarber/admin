@@ -38,6 +38,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"unique_key_of":        context.uniqueKeyOf,
 		"formatted_value_of":   context.FormattedValueOf,
 		"raw_value_of":         context.RawValueOf,
+		"mod":                  func(a int, b int) int { return a % b },
 
 		"t": context.t,
 		"flashes": func() []session.Message {
