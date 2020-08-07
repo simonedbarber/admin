@@ -243,7 +243,9 @@ func (action Action) IsAllowed(mode roles.PermissionMode, context *Context, reco
 		return
 	}
 
-	if context.Resource != nil {
+	// When group is enabled, do not fallback to check resource permission
+	// since when user can access this action, the resource must be accessible.
+	if context.Resource != nil && !context.Admin.IsGroupEnabled() {
 		result = context.Resource.HasPermission(mode, context.Context)
 		return
 	}
