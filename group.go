@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
 )
 
@@ -91,8 +90,8 @@ const (
 	permissionTypeAction   = "action"
 )
 
-// IsAllowedByGroup checks if current user allowed to access given resource
-func IsAllowedByGroup(context *Context, resName string) bool {
+// ResourceAllowedByGroup checks if current user allowed to access given resource
+func ResourceAllowedByGroup(context *Context, resName string) bool {
 	return checkPermission(context.Context, resName, "", permissionTypeResource)
 }
 
@@ -104,7 +103,6 @@ func ActionAllowedByGroup(context *qor.Context, resName string, actionName strin
 func checkPermission(context *qor.Context, resName string, actionName string, permissionType string) (result bool) {
 	uid := context.CurrentUser.GetID()
 	db := context.DB
-	rName := inflection.Singular(resName)
 
 	idStr := fmt.Sprintf("%d", uid)
 	groups := []Group{}
@@ -116,9 +114,9 @@ func checkPermission(context *qor.Context, resName string, actionName string, pe
 		if len(g.ResourcePermissions) != 0 && g.IncludeUserID(idStr) {
 			switch permissionType {
 			case permissionTypeResource:
-				result = g.HasResourcePermission(rName)
+				result = g.HasResourcePermission(resName)
 			case permissionTypeAction:
-				result = g.HasResourceActionPermission(rName, actionName)
+				result = g.HasResourceActionPermission(resName, actionName)
 			}
 
 			if result {

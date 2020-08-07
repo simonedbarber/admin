@@ -12,15 +12,15 @@ func (admin Admin) GetMenus() []*Menu {
 	return admin.menus
 }
 
-// GetAllOffspringMenu returns all the offspring menus of given menu. if given menu has no submenu, return itself.
-func GetAllOffspringMenu(m *Menu) (result []*Menu) {
+// GetSelfMenuTree returns all the offspring menus of given menu. if given menu has no submenu, return itself.
+func GetSelfMenuTree(m *Menu) (result []*Menu) {
 	if len(m.GetSubMenus()) == 0 {
 		result = append(result, m)
 		return
 	}
 
 	for _, subM := range m.GetSubMenus() {
-		result = append(result, GetAllOffspringMenu(subM)...)
+		result = append(result, GetSelfMenuTree(subM)...)
 	}
 
 	return
@@ -66,15 +66,16 @@ func (admin Admin) GetMenu(name ...string) *Menu {
 
 // Menu admin sidebar menu definiation
 type Menu struct {
-	Name         string
-	IconName     string
-	Link         string
-	RelativePath string
-	Priority     int
-	Ancestors    []string
-	Permissioner HasPermissioner
-	Permission   *roles.Permission
-	Invisible    bool
+	Name               string
+	IconName           string
+	Link               string
+	RelativePath       string
+	Priority           int
+	Ancestors          []string
+	Permissioner       HasPermissioner
+	Permission         *roles.Permission
+	Invisible          bool
+	AssociatedResource *Resource
 
 	subMenus []*Menu
 	router   *Router
@@ -121,8 +122,14 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 	if context.Admin.IsGroupEnabled() {
 		// If menu has sub menus, we check sub menus permission instead.
 		// As long as one of the sub menus has permission, then the parent menus has permission too.
-		for _, m := range GetAllOffspringMenu(&menu) {
-			result = IsAllowedByGroup(context, m.Name)
+		for _, m := range GetSelfMenuTree(&menu) {
+			menuName := m.Name
+			// If menu belongs to a resource, we check that resource permission instead of menu's.
+			if m.AssociatedResource != nil {
+				menuName = m.AssociatedResource.Name
+			}
+
+			result = ResourceAllowedByGroup(context, menuName)
 			if result {
 				break
 			}

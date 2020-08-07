@@ -121,7 +121,7 @@ func TestMenuPriority(t *testing.T) {
 	}
 }
 
-func TestGetAllOffspringMenu(t *testing.T) {
+func TestGetSelfMenuTree(t *testing.T) {
 	admin := New(&qor.Config{})
 	admin.router.Prefix = "/admin"
 
@@ -134,7 +134,7 @@ func TestGetAllOffspringMenu(t *testing.T) {
 	c2Menu := admin.AddMenu(&Menu{Name: "Child2", Ancestors: []string{"Father3"}})
 
 	// return all end offsprings menus
-	result := GetAllOffspringMenu(gfMenu)
+	result := GetSelfMenuTree(gfMenu)
 	if want, got := 2, len(result); want != got {
 		t.Errorf("expect to have %d offspring menu but got %d", want, got)
 	}
@@ -146,7 +146,7 @@ func TestGetAllOffspringMenu(t *testing.T) {
 	}
 
 	// returns it only sub menu
-	f3Result := GetAllOffspringMenu(f3Menu)
+	f3Result := GetSelfMenuTree(f3Menu)
 	if want, got := 1, len(f3Result); want != got {
 		t.Errorf("expect to have %d offspring menu but got %d", want, got)
 	}
@@ -155,7 +155,7 @@ func TestGetAllOffspringMenu(t *testing.T) {
 	}
 
 	// for an end offspring menu, return itself
-	c2Result := GetAllOffspringMenu(c2Menu)
+	c2Result := GetSelfMenuTree(c2Menu)
 	if want, got := 1, len(c2Result); want != got {
 		t.Errorf("expect to have %d offspring menu but got %d", want, got)
 	}

@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
@@ -129,6 +128,7 @@ func initGroupSelectorRes(adm *Admin) *Resource {
 func GenResourceList(adm *Admin) [][]string {
 	availableResourcesName := [][]string{}
 	resourceNames := []string{}
+
 	for _, r := range adm.GetResources() {
 		if r.Config.SkipGroupControl || r.Config.Invisible {
 			continue
@@ -149,12 +149,13 @@ func GenResourceList(adm *Admin) [][]string {
 
 	for _, m := range adm.GetMenus() {
 		// when menu has sub menus, it is not to be counted as a resource, when checking permission, if one of its sub menu is granted, the parent menu has permission too.
-		for _, offspringMenu := range GetAllOffspringMenu(m) {
+		for _, offspringMenu := range GetSelfMenuTree(m) {
 			if m.Invisible {
 				continue
 			}
 
-			if !Contains(resourceNames, offspringMenu.Name) && !Contains(resourceNames, inflection.Singular(offspringMenu.Name)) {
+			// Only show menus with no associated resource, If menu belongs to a resource, we check that resource permission instead of menu's.
+			if offspringMenu.AssociatedResource == nil {
 				availableResourcesName = append(availableResourcesName, []string{offspringMenu.Name})
 			}
 		}

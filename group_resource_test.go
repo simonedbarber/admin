@@ -19,9 +19,15 @@ func TestGenResourceList(t *testing.T) {
 
 	var flag bool
 	flag = admin.Contains(result[0], "Product")
-	flag = admin.Contains(result[1], "Collection")
-	flag = admin.Contains(result[2], "FakeNews")
-	flag = admin.Contains(result[3], "External Independent menu")
+	if flag {
+		flag = admin.Contains(result[1], "Collection")
+	}
+	if flag {
+		flag = admin.Contains(result[2], "FakeNews")
+	}
+	if flag {
+		flag = admin.Contains(result[3], "External Independent menu")
+	}
 
 	if !flag {
 		t.Error("lack of expected resource in the result")
