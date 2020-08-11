@@ -92,8 +92,7 @@ func (u User) GetID() uint
 ```
 
 Then enable group permission in admin.
-IMPORTANT: resources registered later than this, will not be managed by group permission system. So call this function after all the resources that you want to managed by group are registered
-
+IMPORTANT: resources registered later than this will not be managed by group permission system. So call this function after all the resources that you wanted are registered.
 
 ```go
 // adm is a qor admin instance
@@ -125,8 +124,13 @@ If you want to set user's group in user edit form, The `admin.RegisterGroup` ret
 
 #### The permission check logic about role and group permission.
 In short, The role always has higher priority than group permission.
-If ResourceA allow role "Developer" to access, UserA is a "Developer" but does not belong to any group. UserA still can access ResourceA.
+If ResourceA allow role "Developer" to access and UserA is a "Developer" but does not belong to any group. UserA still can access ResourceA.
 But if UserA is a "Editor", UserA cannot access ResourceA.
+
+So, A resource `roles.Allow(roles.CRUD, roles.Anyone)` skips the group permission system.
+
+#### Set exceptional resource or actions.
+Resources and actions both have a config called `SkipGroupControl`. If this is true, the current object will not appear in the resource list of group page and group permission check always return true.
 
 ## License
 
