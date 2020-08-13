@@ -39,6 +39,7 @@ type Store struct {
 }
 
 func TestUrlForResourceWithSpecialPrimaryKey(t *testing.T) {
+	db.AutoMigrate(&Store{})
 	context := &admin.Context{Admin: Admin, Context: &qor.Context{}}
 	context.SetDB(db)
 
