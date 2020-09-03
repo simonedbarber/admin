@@ -55,3 +55,7 @@ func TestFuncMaps(t *testing.T) {
 		}
 	}
 }
+
+func TestIsEqual(t *testing.T) {
+	// TODO
+}
