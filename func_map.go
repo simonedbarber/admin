@@ -25,9 +25,6 @@ import (
 	"github.com/qor/session"
 )
 
-// CompositePrimaryKey the string that represents the composite primary key
-const CompositePrimaryKey = "CompositePrimaryKey"
-
 // FuncMap funcs map for current context
 func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
