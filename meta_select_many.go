@@ -2,6 +2,7 @@ package admin
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"reflect"
 
@@ -9,6 +10,19 @@ import (
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 )
+
+// CompositePrimaryKey the string that represents the composite primary key
+const CompositePrimaryKey = "CompositePrimaryKeyField"
+
+// CompositePrimaryKeyField to embed into the struct that requires composite primary key in select many
+type CompositePrimaryKeyField struct {
+	CompositePrimaryKey string `gorm:"-"`
+}
+
+// GenCompositePrimaryKey generates composite primary key in a specific format
+func GenCompositePrimaryKey(id uint, versionName string) string {
+	return fmt.Sprintf("%d%s%s", id, resource.CompositePrimaryKeySeparator, versionName)
+}
 
 // SelectManyConfig meta configuration used for select many
 type SelectManyConfig struct {
