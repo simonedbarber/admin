@@ -383,8 +383,8 @@ func (context *Context) primaryKeyOf(value interface{}) interface{} {
 
 		for i := 0; i < obj.Type().NumField(); i++ {
 			// If given struct has CompositePrimaryKey field and it is not nil. return it as the primary key.
-			if obj.Type().Field(i).Name == CompositePrimaryKey && obj.Field(i).String() != "" {
-				return obj.Field(i)
+			if obj.Type().Field(i).Name == CompositePrimaryKey && obj.Field(i).FieldByName("CompositePrimaryKey").String() != "" {
+				return obj.Field(i).FieldByName("CompositePrimaryKey")
 			}
 		}
 

@@ -12,18 +12,14 @@ import (
 )
 
 // CompositePrimaryKey the string that represents the composite primary key
-const CompositePrimaryKey = "CompositePrimaryKey"
+const CompositePrimaryKey = "CompositePrimaryKeyField"
 
 // CompositePrimaryKeyField to embed into the struct that requires composite primary key in select many
 type CompositePrimaryKeyField struct {
 	CompositePrimaryKey string `gorm:"-"`
 }
 
-// SetCompositePrimaryKey set CompositePrimaryKey in a specific format
-func (cpk *CompositePrimaryKeyField) SetCompositePrimaryKey(id uint, versionName string) {
-	cpk.CompositePrimaryKey = GenCompositePrimaryKey(id, versionName)
-}
-
+// GenCompositePrimaryKey generates composite primary key in a specific format
 func GenCompositePrimaryKey(id uint, versionName string) string {
 	return fmt.Sprintf("%d%s%s", id, resource.CompositePrimaryKeySeparator, versionName)
 }
