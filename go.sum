@@ -11,7 +11,6 @@ github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuP
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/chris-ramon/douceur v0.2.0 h1:IDMEdxlEUUBYBKE4z/mJnFyVXox+MjuEVDJNN27glkU=
 github.com/chris-ramon/douceur v0.2.0/go.mod h1:wDW5xjJdeoMm1mRt4sD4c/LbF/mWdEpRXQKjTR8nIBE=
-github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/denisenkom/go-mssqldb v0.0.0-20191124224453-732737034ffd h1:83Wprp6ROGeiHFAP8WJdI2RoxALQYgdllERc3N5N2DM=
 github.com/denisenkom/go-mssqldb v0.0.0-20191124224453-732737034ffd/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
@@ -93,6 +92,10 @@ github.com/qor/qor v0.0.0-20200715033016-13227382be83/go.mod h1:oG+LgDEnsI9avcFF
 github.com/qor/qor v0.0.0-20200729071734-d587cffbbb93/go.mod h1:i3WqgQWpyNJRB9D3ewgthf5/8fR/ALcvPGUqu5vHZA8=
 github.com/qor/qor v0.0.0-20200828032611-87e8aad79800 h1:uyR7XeS1HdyDly46uPT6u3NYlJnRWzSNio5sanZLrfs=
 github.com/qor/qor v0.0.0-20200828032611-87e8aad79800/go.mod h1:auMzQviFtvyB4kMsKZ4STU78euz0f/lDD52xY8DAyGE=
+github.com/qor/qor v0.0.0-20200904073623-129e51cda3c6 h1:JcijjwH/MsuF1KVN05ofDGClxLLzg3Gxtg3s3qB+tsk=
+github.com/qor/qor v0.0.0-20200904073623-129e51cda3c6/go.mod h1:auMzQviFtvyB4kMsKZ4STU78euz0f/lDD52xY8DAyGE=
+github.com/qor/qor v0.0.0-20200904074829-521af6f62d69 h1:UOavUb3v0q2y0VP95jLY9gFWMCIfGI46VGCuPy39ink=
+github.com/qor/qor v0.0.0-20200904074829-521af6f62d69/go.mod h1:auMzQviFtvyB4kMsKZ4STU78euz0f/lDD52xY8DAyGE=
 github.com/qor/responder v0.0.0-20171031032654-b6def473574f h1:sKELSAyL+z5BRHFe97Bx71z197cBEobVJ6rASKTMSqU=
 github.com/qor/responder v0.0.0-20171031032654-b6def473574f/go.mod h1:0TL2G+qGDYhHJ6XIJ6UcqkZVN+jp8AGqGU2wDnv2qas=
 github.com/qor/roles v0.0.0-20171127035124-d6375609fe3e h1:F0BNcPJKfubM/+IIILu/GbrH9v2vPZWQ5/StSRKUfK4=

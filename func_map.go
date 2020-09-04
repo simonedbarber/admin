@@ -20,6 +20,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 	"github.com/qor/roles"
 	"github.com/qor/session"
@@ -384,7 +385,7 @@ func (context *Context) primaryKeyOf(value interface{}) interface{} {
 
 		for i := 0; i < obj.Type().NumField(); i++ {
 			// If given struct has CompositePrimaryKey field and it is not nil. return it as the primary key.
-			if obj.Type().Field(i).Name == CompositePrimaryKey && obj.Field(i).FieldByName("CompositePrimaryKey").String() != "" {
+			if obj.Type().Field(i).Name == resource.CompositePrimaryKey && obj.Field(i).FieldByName("CompositePrimaryKey").String() != "" {
 				return obj.Field(i).FieldByName("CompositePrimaryKey")
 			}
 		}
