@@ -33,7 +33,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"get_resource":         context.Admin.GetResource,
 		"new_resource_context": context.NewResourceContext,
 		"is_new_record":        context.isNewRecord,
-		"is_equal":             context.IsEqual,
+		"is_equal":             context.isEqual,
 		"is_included":          context.isIncluded,
 		"primary_key_of":       context.primaryKeyOf,
 		"unique_key_of":        context.uniqueKeyOf,
@@ -657,8 +657,8 @@ func (context *Context) renderMeta(meta *Meta, value interface{}, prefix []strin
 	}
 }
 
-// IsEqual export for test only
-func (context *Context) IsEqual(value interface{}, comparativeValue interface{}) bool {
+// isEqual export for test only. If values are struct, compare their primary key. otherwise treat them as string
+func (context *Context) isEqual(value interface{}, comparativeValue interface{}) bool {
 	var result string
 
 	if (value == nil || comparativeValue == nil) && (value != comparativeValue) {
