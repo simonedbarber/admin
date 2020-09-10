@@ -182,7 +182,7 @@ func (selectOneConfig *SelectOneConfig) prepareDataSource(field *gorm.StructFiel
 				for i := 0; i < obj.Type().NumField(); i++ {
 					// If given object has CompositePrimaryKey field, generate composite primary key and return it as the primary key.
 					if obj.Type().Field(i).Name == resource.CompositePrimaryKey {
-						results = append(results, []string{fmt.Sprintf("%d%s%s", id, resource.CompositePrimaryKeySeparator, versionName), utils.Stringify(value)})
+						results = append(results, []string{resource.GenCompositePrimaryKey(id, versionName), utils.Stringify(value)})
 						continue
 					}
 				}
