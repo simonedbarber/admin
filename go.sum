@@ -93,6 +93,8 @@ github.com/qor/qor v0.0.0-20200715033016-13227382be83/go.mod h1:oG+LgDEnsI9avcFF
 github.com/qor/qor v0.0.0-20200729071734-d587cffbbb93/go.mod h1:i3WqgQWpyNJRB9D3ewgthf5/8fR/ALcvPGUqu5vHZA8=
 github.com/qor/qor v0.0.0-20200904073623-129e51cda3c6 h1:JcijjwH/MsuF1KVN05ofDGClxLLzg3Gxtg3s3qB+tsk=
 github.com/qor/qor v0.0.0-20200904073623-129e51cda3c6/go.mod h1:auMzQviFtvyB4kMsKZ4STU78euz0f/lDD52xY8DAyGE=
+github.com/qor/qor v0.0.0-20200910063046-9fd9b0159793 h1:bTzl8GFN5zamlcFl0ibG6tXSLKgnRS6QAH/dvOxXDTI=
+github.com/qor/qor v0.0.0-20200910063046-9fd9b0159793/go.mod h1:auMzQviFtvyB4kMsKZ4STU78euz0f/lDD52xY8DAyGE=
 github.com/qor/responder v0.0.0-20171031032654-b6def473574f h1:sKELSAyL+z5BRHFe97Bx71z197cBEobVJ6rASKTMSqU=
 github.com/qor/responder v0.0.0-20171031032654-b6def473574f/go.mod h1:0TL2G+qGDYhHJ6XIJ6UcqkZVN+jp8AGqGU2wDnv2qas=
 github.com/qor/roles v0.0.0-20171127035124-d6375609fe3e h1:F0BNcPJKfubM/+IIILu/GbrH9v2vPZWQ5/StSRKUfK4=
