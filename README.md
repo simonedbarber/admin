@@ -67,6 +67,122 @@ func main() {
 
 `go run main.go` and visit `localhost:9000/admin` to see the result!
 
+## How to use remoteSelector with publish2.version record
+Suppose we have 3 models. Factory **has many** Items and Factory **has one** Manager. See code comment for detail
+
+```go
+type Factory struct {
+	gorm.Model
+	Name string
+
+	publish2.Version
+	Items       []Item `gorm:"many2many:factory_items;association_autoupdate:false"`
+	ItemsSorter sorting.SortableCollection
+
+	ManagerID          uint
+	ManagerVersionName string // Required. in "xxxVersionName" format.
+	Manager            Manager
+}
+
+type Item struct {
+	gorm.Model
+	Name string
+	publish2.Version
+
+	// github.com/qor/qor/resource
+	resource.CompositePrimaryKeyField // Required
+}
+
+type Manager struct {
+	gorm.Model
+	Name string
+
+	publish2.Version
+
+	// github.com/qor/qor/resource
+	resource.CompositePrimaryKeyField // Required
+}
+
+itemSelector := generateRemoteItemSelector(adm)
+factoryRes.Meta(&admin.Meta{
+	Name: "Items",
+	Config: &admin.SelectManyConfig{
+	RemoteDataResource: itemSelector,
+	},
+})
+
+managerSelector := generateRemoteManagerSelector(adm)
+factoryRes.Meta(&admin.Meta{
+	Name: "Manager",
+	Config: &admin.SelectOneConfig{
+	RemoteDataResource: managerSelector,
+	},
+})
+
+func generateRemoteItemSelector(adm *admin.Admin) (res *admin.Resource) {
+	res = adm.AddResource(&Item{}, &admin.Config{Name: "ItemSelector"})
+	res.IndexAttrs("ID", "Name")
+
+	// Required. Convert single ID into composite primary key
+	res.Meta(&admin.Meta{
+	Name: "ID",
+	Valuer: func(value interface{}, ctx *qor.Context) interface{} {
+		if r, ok := value.(*Item); ok {
+		// github.com/qor/qor/resource
+		return resource.GenCompositePrimaryKey(r.ID, r.GetVersionName())
+		}
+		return ""
+	},
+	})
+
+	return res
+}
+
+func generateRemoteManagerSelector(adm *admin.Admin) (res *admin.Resource) {
+	res = adm.AddResource(&Manager{}, &admin.Config{Name: "ManagerSelector"})
+	res.IndexAttrs("ID", "Name")
+
+	// Required. Convert single ID into composite primary key
+	res.Meta(&admin.Meta{
+	Name: "ID",
+	Valuer: func(value interface{}, ctx *qor.Context) interface{} {
+		if r, ok := value.(*Manager); ok {
+		// github.com/qor/qor/resource
+		return resource.GenCompositePrimaryKey(r.ID, r.GetVersionName())
+		}
+		return ""
+	},
+	})
+
+	return res
+}
+
+```
+
+If you need to overwrite Collection. you have to pass composite primary key like this
+
+```go
+factoryRes.Meta(&admin.Meta{
+  Name: "Items",
+  Config: &admin.SelectManyConfig{
+  Collection: func(value interface{}, ctx *qor.Context) (results [][]string) {
+    if c, ok := value.(*Factory); ok {
+    var items []Item
+    ctx.GetDB().Model(c).Related(&items, "Items")
+
+    for _, p := range items {
+      // The first element must be the composite primary key instead of ID
+      results = append(results, []string{resource.GenCompositePrimaryKey(p.ID, p.GetVersionName()), p.Name})
+      }
+    }
+    return
+  },
+  RemoteDataResource: itemSelector,
+  },
+})
+```
+
+
 ## Live DEMO
 
 * Live Demo [http://demo.getqor.com/admin](http://demo.getqor.com/admin)
