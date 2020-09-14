@@ -176,17 +176,19 @@ func (selectOneConfig *SelectOneConfig) prepareDataSource(field *gorm.StructFiel
 				scope := context.GetDB().NewScope(value)
 
 				obj := reflect.Indirect(reflect.ValueOf(value))
-				id := obj.FieldByName("ID").Uint()
-				versionName := obj.FieldByName("VersionName").String()
+				idField := obj.FieldByName("ID")
+				versionNameField := obj.FieldByName("VersionName")
 
-				for i := 0; i < obj.Type().NumField(); i++ {
-					// If given object has CompositePrimaryKey field, generate composite primary key and return it as the primary key.
-					if obj.Type().Field(i).Name == resource.CompositePrimaryKey {
-						results = append(results, []string{resource.GenCompositePrimaryKey(id, versionName), utils.Stringify(value)})
-						continue
+				if idField.IsValid() && versionNameField.IsValid() {
+					for i := 0; i < obj.Type().NumField(); i++ {
+						// If given object has CompositePrimaryKey field, generate composite primary key and return it as the primary key.
+						if obj.Type().Field(i).Name == resource.CompositePrimaryKey {
+							results = append(results, []string{resource.GenCompositePrimaryKey(idField.Uint(), versionNameField.String()), utils.Stringify(value)})
+							continue
+						}
 					}
-				}
 
+				}
 				results = append(results, []string{fmt.Sprint(scope.PrimaryKeyValue()), utils.Stringify(value)})
 			}
 			return
