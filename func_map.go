@@ -245,7 +245,7 @@ func (context *Context) URLFor(value interface{}, resources ...*Resource) string
 
 			for _, primaryField := range res.PrimaryFields {
 				if field, ok := scope.FieldByName(primaryField.Name); ok {
-					primaryFields = append(primaryFields, fmt.Sprint(field.Field.Interface())) // TODO improve me
+					primaryFields = append(primaryFields, url.QueryEscape(fmt.Sprint(field.Field.Interface())))
 				}
 			}
 
