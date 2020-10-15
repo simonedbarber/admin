@@ -3,6 +3,7 @@ package admin
 import (
 	"crypto/md5"
 	"fmt"
+	"log"
 	"mime"
 	"net/http"
 	"path"
@@ -179,6 +180,10 @@ func (ac *Controller) Update(context *Context) {
 	}
 
 	if context.HasError() {
+		log.Println("====== QOR DEBUG ========")
+		log.Printf("db errors : %+v", context.GetErrors())
+		log.Println("==============")
+
 		context.Writer.WriteHeader(HTTPUnprocessableEntity)
 		responder.With("html", func() {
 			context.Execute("edit", result)
