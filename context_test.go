@@ -44,14 +44,13 @@ func TestUrlForResourceWithSpecialPrimaryKey(t *testing.T) {
 	context.SetDB(db)
 
 	storeRes := Admin.AddResource(&Store{}, &admin.Config{Permission: roles.Allow(roles.CRUD, roles.Anyone)})
-	s := Store{ID: "00022%alert%29", Name: "test"}
+	s := Store{ID: "00022 %alert%29", Name: "test"}
 	if err := db.Save(&s).Error; err != nil {
 		t.Fatal(err)
 	}
 
 	storeLink := context.URLFor(s, storeRes)
-
-	if storeLink != "/admin/stores/00022%25alert%2529" {
+	if storeLink != "/admin/stores/00022%20%25alert%2529" {
 		t.Error("special primary key is not escaped properly")
 	}
 }
