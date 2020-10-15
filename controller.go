@@ -181,7 +181,8 @@ func (ac *Controller) Update(context *Context) {
 
 	if context.HasError() {
 		log.Println("====== QOR DEBUG ========")
-		log.Printf("db errors : %+v", context.GetErrors())
+		log.Printf("context errors : %+v", context.GetErrors())
+		log.Printf("db errors : %+v", context.DB.GetErrors())
 		log.Println("==============")
 
 		context.Writer.WriteHeader(HTTPUnprocessableEntity)
