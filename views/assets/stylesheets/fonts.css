@@ -2,7 +2,7 @@
     font-family: 'Material Icons';
     font-style: normal;
     font-weight: 400;
-    src: url(//fonts.gstatic.com/s/materialicons/v55/flUhRq6tzZclQEJ-Vdg-IuiaDsNa.woff) format('woff');
+    src: url(../fonts/MaterialIcons.woff) format('woff');
   }
   @font-face {
     font-family: 'Roboto';
@@ -39,13 +39,27 @@
     font-family: 'Material Icons';
     font-weight: normal;
     font-style: normal;
-    font-size: 24px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
+    font-size: 24px;  /* Preferred icon size */
     display: inline-block;
-    white-space: nowrap;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
     word-wrap: normal;
-    direction: ltr;
+    word-break: normal;
+  
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+  
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+  
+    /* Support for IE. */
+    -webkit-font-feature-settings: 'liga';
+    -moz-font-feature-settings: 'liga';
     font-feature-settings: 'liga';
+    -ms-font-feature-settings: 'liga';
   }
