@@ -54,7 +54,7 @@ func main() {
   Admin.AddResource(&User{})
   Admin.AddResource(&Product{})
 
-  // initalize an HTTP request multiplexer
+  // initialize an HTTP request multiplexer
   mux := http.NewServeMux()
 
   // Mount admin interface to mux
