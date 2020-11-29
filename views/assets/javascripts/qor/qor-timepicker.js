@@ -185,7 +185,7 @@
             var hasTime = timeReg.test(oldValue);
             var selectedTime = $targetInput
                 .data()
-                .timepickerList.find(CLASS_TIME_SELECTED)
+                .timepickerObj.list.find(CLASS_TIME_SELECTED)
                 .html();
             var newValue;
 
