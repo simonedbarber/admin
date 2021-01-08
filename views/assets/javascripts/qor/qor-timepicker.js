@@ -196,8 +196,9 @@
             } else {
                 newValue = oldValue + ' ' + selectedTime;
             }
-
+            
             $targetInput.val(newValue);
+            $targetInput.trigger('change');
         },
 
         show: function() {
