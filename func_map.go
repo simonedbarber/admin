@@ -39,6 +39,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"unique_key_of":        context.uniqueKeyOf,
 		"formatted_value_of":   context.FormattedValueOf,
 		"raw_value_of":         context.RawValueOf,
+		"mod":                  func(a int, b int) int { return a % b },
 
 		"t": context.t,
 		"flashes": func() []session.Message {
@@ -766,8 +767,12 @@ func (context *Context) getMenus() (menus []*menu) {
 
 	addMenu = func(parent *menu, menus []*Menu) {
 		for _, m := range menus {
+			if m.Invisible {
+				continue
+			}
+
 			url := m.URL()
-			if m.HasPermission(roles.Read, context.Context) {
+			if m.HasPermission(roles.Read, context) {
 				var menu = &menu{Menu: m}
 				if strings.HasPrefix(context.Request.URL.Path, url) && len(url) > mostMatchedLength {
 					mostMatchedMenu = menu
@@ -1180,7 +1185,7 @@ func (context *Context) AllowedActions(actions []*Action, mode string, records .
 					permission = roles.Read
 				}
 
-				if action.isAllowed(permission, context, records...) {
+				if action.IsAllowed(permission, context, records...) {
 					allowedActions = append(allowedActions, action)
 					break
 				}
