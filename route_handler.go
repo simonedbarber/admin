@@ -63,7 +63,7 @@ func (handler routeHandler) HasPermission(permissionMode roles.PermissionMode, c
 
 	if handler.Config.PermissionMode != "" {
 		// When group is enabled, resource with no Permission set will no longer return true. But return group permission result instead.
-		context.Context.Config = &qor.Config{GroupPermissionEnabled: true, GroupPermissionResult: result}
+		context.Context.Config = &qor.Config{GroupPermissionEnabled: context.Admin.IsGroupEnabled(), GroupPermissionResult: result}
 		result = handler.Config.Permissioner.HasPermission(handler.Config.PermissionMode, context.Context)
 	} else {
 		result = handler.Config.Permissioner.HasPermission(permissionMode, context.Context)

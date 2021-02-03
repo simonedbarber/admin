@@ -240,6 +240,22 @@ type Campaign struct {
 	Name string
 }
 
+func TestDefaultBehaviorWithNoGroupPermissionEnabled(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{}, &Campaign{})
+	Admin.SetGroupEnabled(false)
+	Admin.AddResource(&Campaign{})
+	user := User{Name: LoggedInUserName, Role: Role_system_administrator}
+	utils.AssertNoErr(t, db.Save(&user).Error)
+
+	resp, err := http.Get(server.URL + "/admin/campaigns")
+
+	utils.AssertNoErr(t, err)
+
+	if got, want := resp.StatusCode, 200; want != got {
+		t.Errorf("expect visit blank permission resource without group permission enabled to get %v but got %v", want, got)
+	}
+}
+
 func TestSkipGroupPermissionResourceRouter(t *testing.T) {
 	qorTestUtils.ResetDBTables(db, &admin.Group{}, &User{}, &Campaign{})
 	Admin.AddResource(&Campaign{}, &admin.Config{SkipGroupControl: true})
