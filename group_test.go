@@ -254,6 +254,7 @@ func TestDefaultBehaviorWithNoGroupPermissionEnabled(t *testing.T) {
 	if got, want := resp.StatusCode, 200; want != got {
 		t.Errorf("expect visit blank permission resource without group permission enabled to get %v but got %v", want, got)
 	}
+	Admin.SetGroupEnabled(true)
 }
 
 func TestSkipGroupPermissionResourceRouter(t *testing.T) {
