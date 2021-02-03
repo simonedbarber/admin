@@ -80,6 +80,8 @@ func main() {
 
 QOR Admin already has a "role" system to control permission. However, it can only be managed by the developer with hardcoded configuration. The group permission system aim to let admin users can manage permissions at runtime. Once group system is enabled, user with no group permission cannot see or operate the resource unless it has proper role to access it.
 
+The principle is GroupPermission should not affect any previous behavior when it is NOT enabled. But if you want to use it, be aware that once GroupPermission is enabled, resources with blank `Permission` will NOT be accessible by default. You have to assign it to a group of users before the user can access it.
+
 #### Usage
 
 To use group permission, First, you should enable Authentication system of QOR Admin and the "user" model should implements these two interfaces.
