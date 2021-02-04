@@ -111,7 +111,13 @@ func (menu Menu) HasPermission(mode roles.PermissionMode, context *Context) (res
 			return menu.Permission.HasPermission(mode, roles...)
 		} else if menu.Permissioner != nil {
 			// When group is enabled, resource with no Permission set will no longer return true. But return group permission result instead.
-			context.Context.Config = &qor.Config{GroupPermissionEnabled: true, GroupPermissionResult: previousResult}
+			if context.Context.Config == nil {
+				context.Context.Config = &qor.Config{GroupPermissionEnabled: context.Admin.IsGroupEnabled(), GroupPermissionResult: previousResult}
+			} else {
+				context.Context.Config.GroupPermissionEnabled = context.Admin.IsGroupEnabled()
+				context.Context.Config.GroupPermissionResult = previousResult
+			}
+
 			return menu.Permissioner.HasPermission(mode, context.Context)
 		}
 
