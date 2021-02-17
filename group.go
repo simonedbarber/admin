@@ -103,7 +103,7 @@ func ActionAllowedByGroup(context *qor.Context, resName string, actionName strin
 
 func checkPermission(context *qor.Context, resName string, actionName string, permissionType string) (result bool) {
 	uid := context.CurrentUser.GetID()
-	db := context.DB
+	db := context.DB.New()
 
 	idStr := fmt.Sprintf("%d", uid)
 	groups := []Group{}
