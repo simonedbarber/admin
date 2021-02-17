@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -107,6 +108,7 @@ func checkPermission(context *qor.Context, resName string, actionName string, pe
 	idStr := fmt.Sprintf("%d", uid)
 	groups := []Group{}
 	if err := db.Find(&groups).Error; err != nil {
+		log.Print(err.Error())
 		return false
 	}
 
