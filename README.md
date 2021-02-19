@@ -76,6 +76,12 @@ func main() {
 
 <https://doc.getqor.com/admin>
 
+To print all registered routes
+```go
+// adm is a QOR admin instance
+adm.GetRouter().PrintRoutes()
+```
+
 ## License
 
 Released under the [MIT License](http://opensource.org/licenses/MIT).
