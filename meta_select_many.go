@@ -92,20 +92,34 @@ func (selectManyConfig *SelectManyConfig) ConfigureQORAdminFilter(filter *Filter
 func (selectManyConfig *SelectManyConfig) FilterValue(filter *Filter, context *Context) interface{} {
 	var (
 		prefix  = fmt.Sprintf("filters[%v].", filter.Name)
-		keyword string
+		keyword interface{}
 	)
 
 	if metaValues, err := resource.ConvertFormToMetaValues(context.Request, []resource.Metaor{}, prefix); err == nil {
 		if metaValue := metaValues.Get("Value"); metaValue != nil {
-			keyword = utils.ToString(metaValue.Value)
+			if arr, ok := metaValue.Value.([]string); ok {
+				keyword = arr
+			} else {
+				keyword = utils.ToString(metaValue.Value)
+			}
 		}
 	}
 
-	if keyword != "" && selectManyConfig.RemoteDataResource != nil {
-		result := selectManyConfig.RemoteDataResource.NewStruct()
+	if keyword != nil && selectManyConfig.RemoteDataResource != nil {
+		result := selectManyConfig.RemoteDataResource.NewSlice()
 		clone := context.Clone()
-		clone.ResourceID = keyword
-		if selectManyConfig.RemoteDataResource.CallFindOne(result, nil, clone) == nil {
+		var primaryQuerySQL string
+		for _, field := range selectManyConfig.RemoteDataResource.PrimaryFields {
+			if filter.Name == field.DBName {
+				primaryQuerySQL = fmt.Sprintf("%v in (?)", field.DBName)
+			}
+		}
+		if primaryQuerySQL == "" {
+			primaryQuerySQL = "id IN (?)"
+		}
+
+		clone.DB = clone.DB.Where(primaryQuerySQL, keyword)
+		if selectManyConfig.RemoteDataResource.CallFindMany(result, clone) == nil {
 			return result
 		}
 	}
