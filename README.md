@@ -205,6 +205,21 @@ factoryRes.Meta(&admin.Meta{
 })
 ```
 
+## To support assign associations when creating a new version
+If you want to assign associations when creating a new version of object immediately. You need to define a function called `AssignVersionName` to the versioned struct with **pointer** receiver which should contains the generating new version name's logic and assign the new version name to the object.
+e.g.
+```go
+func (fac *Factory) AssignVersionName(db *gorm.DB) {
+	var count int
+	name := time.Now().Format("2006-01-02")
+	if err := db.Model(&CollectionWithVersion{}).Where("id = ? AND version_name like ?", fac.ID, name+"%").Count(&count).Error; err != nil {
+    panic(err)
+  }
+	fac.VersionName = fmt.Sprintf("%s-v%v", name, count+1)
+}
+```
+
+
 ## Live DEMO
 
 * Live Demo [http://demo.getqor.com/admin](http://demo.getqor.com/admin)
