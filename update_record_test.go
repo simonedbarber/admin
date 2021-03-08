@@ -16,15 +16,19 @@ import (
 	. "github.com/qor/admin/tests/dummy"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+	qorTestUtils "github.com/qor/qor/test/utils"
 )
 
 func TestUpdateRecord(t *testing.T) {
-	user := User{Name: "update_record", Role: "admin"}
+	qorTestUtils.ResetDBTables(db, &Language{}, &User{})
+	createLoggedInUser()
+
+	user := User{Name: "update_record", Role: Role_system_administrator}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name": {user.Name + "_new"},
-		"QorResource.Role": {"admin"},
+		"QorResource.Role": {Role_system_administrator},
 	}
 
 	if req, err := http.PostForm(server.URL+"/admin/users/"+fmt.Sprint(user.ID), form); err == nil {
@@ -41,7 +45,9 @@ func TestUpdateRecord(t *testing.T) {
 }
 
 func TestUpdateRecordWithRollback(t *testing.T) {
-	db.Exec("TRUNCATE TABLE users")
+	qorTestUtils.ResetDBTables(db, &Language{}, &User{})
+	createLoggedInUser()
+
 	db.Model(&User{}).AddUniqueIndex("uix_user_name", "name")
 
 	userR := Admin.GetResource("User")
@@ -55,14 +61,14 @@ func TestUpdateRecordWithRollback(t *testing.T) {
 	})
 
 	anotherUsersName := "Katin"
-	db.Save(&User{Name: anotherUsersName, Role: "admin"})
+	db.Save(&User{Name: anotherUsersName, Role: Role_system_administrator})
 
-	user := User{Name: "update_record", Role: "admin", Languages: []Language{{Name: "CN"}, {Name: "JP"}}}
+	user := User{Name: "update_record", Role: Role_system_administrator, Languages: []Language{{Name: "CN"}, {Name: "JP"}}}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name": {anotherUsersName},
-		"QorResource.Role": {"admin"},
+		"QorResource.Role": {Role_system_administrator},
 	}
 
 	if req, err := http.PostForm(server.URL+"/admin/users/"+fmt.Sprint(user.ID), form); err == nil {
@@ -89,12 +95,15 @@ func TestUpdateRecordWithRollback(t *testing.T) {
 }
 
 func TestUpdateHasOneRecord(t *testing.T) {
-	user := User{Name: "update_record_and_has_one", Role: "admin", CreditCard: CreditCard{Number: "1234567890", Issuer: "JCB"}}
+	qorTestUtils.ResetDBTables(db, &CreditCard{}, &User{})
+	createLoggedInUser()
+
+	user := User{Name: "update_record_and_has_one", Role: Role_system_administrator, CreditCard: CreditCard{Number: "1234567890", Issuer: "JCB"}}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":              {user.Name + "_new"},
-		"QorResource.Role":              {"admin"},
+		"QorResource.Role":              {Role_system_administrator},
 		"QorResource.CreditCard.ID":     {fmt.Sprint(user.CreditCard.ID)},
 		"QorResource.CreditCard.Number": {"1234567890"},
 		"QorResource.CreditCard.Issuer": {"UnionPay"},
@@ -124,12 +133,15 @@ func TestUpdateHasOneRecord(t *testing.T) {
 }
 
 func TestUpdateHasManyRecord(t *testing.T) {
-	user := User{Name: "update_record_and_has_many", Role: "admin", Addresses: []Address{{Address1: "address 1.1", Address2: "address 1.2"}, {Address1: "address 2.1"}, {Address1: "address 3.1"}}}
+	qorTestUtils.ResetDBTables(db, &Address{}, &User{})
+	createLoggedInUser()
+
+	user := User{Name: "update_record_and_has_many", Role: Role_system_administrator, Addresses: []Address{{Address1: "address 1.1", Address2: "address 1.2"}, {Address1: "address 2.1"}, {Address1: "address 3.1"}}}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":                  {user.Name},
-		"QorResource.Role":                  {"admin"},
+		"QorResource.Role":                  {Role_system_administrator},
 		"QorResource.Addresses[0].ID":       {fmt.Sprint(user.Addresses[0].ID)},
 		"QorResource.Addresses[0].Address1": {"address 1.1 new"},
 		"QorResource.Addresses[1].ID":       {fmt.Sprint(user.Addresses[1].ID)},
@@ -174,12 +186,15 @@ func TestUpdateHasManyRecord(t *testing.T) {
 }
 
 func TestDestroyEmbeddedHasOneRecord(t *testing.T) {
-	user := User{Name: "destroy_embedded_has_one_record", Role: "admin", CreditCard: CreditCard{Number: "1234567890", Issuer: "JCB"}}
+	qorTestUtils.ResetDBTables(db, &CreditCard{}, &User{})
+	createLoggedInUser()
+
+	user := User{Name: "destroy_embedded_has_one_record", Role: Role_system_administrator, CreditCard: CreditCard{Number: "1234567890", Issuer: "JCB"}}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":                {user.Name + "_new"},
-		"QorResource.Role":                {"admin"},
+		"QorResource.Role":                {Role_system_administrator},
 		"QorResource.CreditCard.ID":       {fmt.Sprint(user.CreditCard.ID)},
 		"QorResource.CreditCard._destroy": {"1"},
 		"QorResource.CreditCard.Number":   {"1234567890"},
@@ -205,17 +220,20 @@ func TestDestroyEmbeddedHasOneRecord(t *testing.T) {
 }
 
 func TestUpdateManyToManyRecord(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &Language{}, &User{})
+	createLoggedInUser()
+
 	name := "update_record_many_to_many"
 	var languageCN Language
 	var languageEN Language
 	db.FirstOrCreate(&languageCN, Language{Name: "CN"})
 	db.FirstOrCreate(&languageEN, Language{Name: "EN"})
-	user := User{Name: name, Role: "admin", Languages: []Language{languageCN, languageEN}}
+	user := User{Name: name, Role: Role_system_administrator, Languages: []Language{languageCN, languageEN}}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":      {name + "_new"},
-		"QorResource.Role":      {"admin"},
+		"QorResource.Role":      {Role_system_administrator},
 		"QorResource.Languages": {fmt.Sprint(languageCN.ID)},
 	}
 
@@ -241,6 +259,9 @@ func TestUpdateManyToManyRecord(t *testing.T) {
 }
 
 func TestUpdateSelectOne(t *testing.T) {
+	qorTestUtils.ResetDBTables(db, &Company{}, &User{})
+	createLoggedInUser()
+
 	name := "update_record_select_one"
 	var company1, company2 Company
 	if err := db.FirstOrCreate(&company1, &Company{Name: "Company 1"}).Error; err != nil {
@@ -249,12 +270,12 @@ func TestUpdateSelectOne(t *testing.T) {
 	if err := db.FirstOrCreate(&company2, &Company{Name: "Company 2"}).Error; err != nil {
 		t.Fatal(err)
 	}
-	user := User{Name: name, Role: "admin", Company: &company1}
+	user := User{Name: name, Role: Role_system_administrator, Company: &company1}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":    {name + "_new"},
-		"QorResource.Role":    {"admin"},
+		"QorResource.Role":    {Role_system_administrator},
 		"QorResource.Company": {fmt.Sprint(company2.ID)},
 	}
 
@@ -289,7 +310,7 @@ func TestUpdateAttachment(t *testing.T) {
 		}
 		form := url.Values{
 			"QorResource.Name": {name},
-			"QorResource.Role": {"admin"},
+			"QorResource.Role": {Role_system_administrator},
 		}
 		for key, val := range form {
 			_ = writer.WriteField(key, val[0])
