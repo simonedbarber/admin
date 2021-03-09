@@ -342,7 +342,6 @@ func filterResourceByFields(res *Resource, filterFields []filterField, keyword s
 								joinConditionsMap[key] = []string{fmt.Sprintf("%v LEFT JOIN %v ON %v", condition, nextScope.QuotedTableName(), strings.Join(conditions, " AND "))}
 							} else {
 								key := fmt.Sprintf("LEFT JOIN %v ON", nextScope.QuotedTableName())
-
 								for index := range relationship.ForeignDBNames {
 									if relationship.Kind == "has_one" || relationship.Kind == "has_many" {
 										joinConditionsMap[key] = append(joinConditionsMap[key],
@@ -493,7 +492,7 @@ func filterResourceByFields(res *Resource, filterFields []filterField, keyword s
 					}
 				} else if relationship := field.Relationship; relationship != nil {
 					switch relationship.Kind {
-					case "select_one", "select_many":
+					case "select_one", "select_many", "has_many", "has_one":
 						for _, foreignFieldName := range relationship.ForeignFieldNames {
 							generateConditions(filterField{
 								FieldName: strings.Join([]string{field.Name, foreignFieldName}, "."),

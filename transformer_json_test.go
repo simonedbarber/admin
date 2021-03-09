@@ -15,7 +15,7 @@ import (
 )
 
 func TestJSONTransformerEncode(t *testing.T) {
-	qorTestUtils.ResetDBTables(db, &Language{}, &Profile{}, &CreditCard{}, &User{})
+	qorTestUtils.ResetDBTables(db, &Language{}, &Profile{}, &CreditCard{}, &User{}, &Address{})
 
 	ctx := Admin.NewContext(nil, nil)
 	ctx.Context.Roles = []string{Role_system_administrator}
