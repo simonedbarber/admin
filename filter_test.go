@@ -3,6 +3,8 @@ package admin_test
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -80,7 +82,7 @@ func TestDefaultFilter(t *testing.T) {
 	}
 
 	for _, cv := range cases {
-		req, _ := http.NewRequest("GET", fmt.Sprintf("%s/admin/user?filters[%v].Value=%v", server.URL, cv.filter, cv.value), nil)
+		req, _ := http.NewRequest("GET", fmt.Sprint(server.URL, "/admin/users?"+encodeValues(cv.filter, cv.value)), nil)
 		req.Header.Set("Content-Type", FORMTYPE)
 		context := Admin.NewContext(nil, req)
 		context.Roles = []string{Role_system_administrator}
@@ -107,8 +109,8 @@ func TestDefaultFilter(t *testing.T) {
 }
 
 func TestSelectManyConfigFilter(t *testing.T) {
-	//initData()
-	userM := Admin.NewResource(&User{}, &admin.Config{Name: "SelectManyFilter"})
+	initData()
+	userM := Admin.AddResource(&User{}, &admin.Config{Name: "SelectManyFilter"})
 	userM.Filter(&admin.Filter{
 		Name: "Age",
 		Config: &admin.SelectManyConfig{
@@ -127,6 +129,11 @@ func TestSelectManyConfigFilter(t *testing.T) {
 		Name:   "CreditCard",
 		Config: &admin.SelectManyConfig{},
 	})
+	//filter has_one
+	userM.Filter(&admin.Filter{
+		Name:   "Profile",
+		Config: &admin.SelectManyConfig{},
+	})
 	//filter has_many
 	userM.Filter(&admin.Filter{
 		Name:   "Addresses",
@@ -143,6 +150,59 @@ func TestSelectManyConfigFilter(t *testing.T) {
 		Config: &admin.SelectManyConfig{},
 	})
 
+	cases := []struct {
+		filter string
+		value  interface{}
+		expect []string
+	}{
+		{filter: "Age", value: []uint{13, 14, 15, 17}, expect: []string{"user_4", "user_5", "user_6"}},
+		{filter: "Role", value: []string{Role_editor, Role_supervisor}, expect: []string{"user_1", "user_2", "user_3", "user_4"}},
+		{filter: "CreditCard", value: []uint{5}, expect: []string{"user_5"}},
+		{filter: "Profile", value: []uint{3}, expect: []string{"user_3"}},
+		{filter: "Addresses", value: []uint{1}, expect: []string{"user_1", "user_5"}},
+		{filter: "Company", value: []uint{1, 2}, expect: []string{"user_1", "user_3", "user_2", "user_5", "user_4", "user_6"}},
+		{filter: "Languages", value: []uint{1}, expect: []string{"user_1", "user_3", "user_2"}},
+	}
+
+	for _, cv := range cases {
+		req, _ := http.NewRequest("GET", fmt.Sprint(server.URL, "/admin/select_many_filters?"+encodeValues(cv.filter, cv.value)), nil)
+		req.Header.Set("Content-Type", FORMTYPE)
+		context := Admin.NewContext(nil, req)
+		context.Roles = []string{Role_system_administrator}
+		context.Resource = userM
+		context.Searcher = &admin.Searcher{Context: context}
+		context.Request.ParseForm()
+
+		if users, err := context.FindMany(); err == nil {
+			arr := *users.(*[]*User)
+			if len(arr) != len(cv.expect) {
+				t.Fatalf("filter: %v, except: %v, got: %v", cv.filter, cv.expect, len(arr))
+			}
+
+			for _, v := range arr {
+				if !strings.Contains(strings.Join(cv.expect, ","), v.Name) {
+					t.Fatalf("filter: %v, except: %v, got: %v", cv.filter, cv.expect, v.Name)
+				}
+			}
+		} else {
+			t.Fatal(err)
+		}
+	}
+}
+
+func encodeValues(filter string, values interface{}) string {
+	key := fmt.Sprintf("filters[%s].Value", filter)
+	tv := reflect.ValueOf(values)
+	val := make(url.Values)
+	switch tv.Kind() {
+	case reflect.Slice:
+		for i := 0; i < tv.Len(); i++ {
+			val.Add(key, fmt.Sprint(tv.Index(i)))
+		}
+	default:
+		val.Add(key, fmt.Sprint(tv))
+	}
+	return val.Encode()
 }
 
 func initData() {
@@ -159,11 +219,6 @@ func initData() {
 	db.Save(&lans[3])
 
 	profiles := []Profile{{Name: "Profile of user_1"}, {Name: "Profile of user_2"}, {Name: "Profile of user_3"}, {Name: "Profile of user_4"}}
-	db.Save(&profiles[0])
-	db.Save(&profiles[1])
-	db.Save(&profiles[2])
-	db.Save(&profiles[3])
-
 	addrs := []Address{{Address1: "Address1"}, {Address1: "Address2"}, {Address1: "Address3"}, {Address1: "Address4"}}
 	db.Save(&addrs[0])
 	db.Save(&addrs[1])
