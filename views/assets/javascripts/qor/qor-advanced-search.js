@@ -148,7 +148,7 @@
 
       this.$form
         .prepend(
-          `<input type="hidden" name="filter_saving_name" value=${name}  />`
+          `<input type="hidden" name="filter_saving_name" value="${name}"  />`
         )
         .submit();
     },
