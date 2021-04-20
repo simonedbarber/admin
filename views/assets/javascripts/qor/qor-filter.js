@@ -23,7 +23,7 @@
         CLASS_BOTTOMSHEETS = '.qor-bottomsheets';
 
     function encodeSearch(data, detached) {
-        var search = decodeURI(location.search);
+        var search = location.search;
         var per_page = location.search.match(/per_page=\d+/);
         var params;
 
@@ -75,7 +75,7 @@
                     param.push(n[0]);
 
                     if (value) {
-                        value = $.trim(decodeURIComponent(value));
+                        value = $.trim(value);
 
                         if (value) {
                             param.push(value);
@@ -127,14 +127,14 @@
                 paramName;
 
             if ($target.is('select')) {
-                params = decodeSearch(decodeURI(location.search));
+                params = decodeSearch(location.search);
 
-                paramName = name = $target.attr('name');
+                paramName = name = encodeURIComponent($target.attr('name'));
                 value = $target.val();
                 param = [name];
 
                 if (value) {
-                    param.push(value);
+                    param.push(encodeURIComponent(value));
                 }
 
                 param = param.join('=');
@@ -149,7 +149,7 @@
                     var value = $.trim($this.prop('value'));
 
                     if (value) {
-                        param.push(value);
+                        param.push(encodeURIComponent(value));
                     }
 
                     param = param.join('=');
