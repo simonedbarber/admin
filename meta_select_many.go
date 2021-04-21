@@ -84,7 +84,7 @@ func (selectManyConfig *SelectManyConfig) ConfigureQORAdminFilter(filter *Filter
 	selectManyConfig.SelectOneConfig.PrimaryField = selectManyConfig.PrimaryField
 	selectManyConfig.prepareDataSource(structField, filter.Resource, "!remote_data_filter")
 
-	filter.Operations = []string{"contains"}
+	filter.Operations = []string{"In"}
 	filter.Type = "select_many"
 }
 

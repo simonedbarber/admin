@@ -364,7 +364,7 @@ func filterResourceByFields(res *Resource, filterFields []filterField, keyword s
 			}
 			tableName := currentScope.QuotedTableName()
 
-			if filterfield.Operation == "contains" {
+			if filterfield.Operation == "In" {
 				keywordEx = strings.Split(strings.ToUpper(keyword), ",")
 			}
 
@@ -385,7 +385,7 @@ func filterResourceByFields(res *Resource, filterFields []filterField, keyword s
 				case "blank":
 					conditions = append(conditions, fmt.Sprintf("%v.%v = ? OR %v.%v IS NULL", tableName, scope.Quote(field.DBName), tableName, scope.Quote(field.DBName)))
 					keywords = append(keywords, "")
-				case "contains":
+				case "In":
 					conditions = append(conditions, fmt.Sprintf("upper(%v.%v) in (?)", tableName, scope.Quote(field.DBName)))
 					keywords = append(keywords, keywordEx)
 				default:
@@ -409,7 +409,7 @@ func filterResourceByFields(res *Resource, filterFields []filterField, keyword s
 					default:
 						conditions = append(conditions, fmt.Sprintf("%v.%v = ?", tableName, scope.Quote(field.DBName)))
 					}
-				} else if filterfield.Operation == "contains" {
+				} else if filterfield.Operation == "In" {
 					conditions = append(conditions, fmt.Sprintf("%v.%v in (?)", tableName, scope.Quote(field.DBName)))
 					keywords = append(keywords, keywordEx)
 				}
@@ -482,7 +482,7 @@ func filterResourceByFields(res *Resource, filterFields []filterField, keyword s
 					case reflect.Struct, reflect.Ptr:
 						appendStruct(field)
 					default:
-						if filterfield.Operation == "contains" {
+						if filterfield.Operation == "In" {
 							conditions = append(conditions, fmt.Sprintf("%v.%v in (?)", tableName, scope.Quote(field.DBName)))
 							keywords = append(keywords, keywordEx)
 						} else {
