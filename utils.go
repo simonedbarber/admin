@@ -16,7 +16,8 @@ import (
 var (
 	globalViewPaths []string
 	globalAssetFSes []assetfs.Interface
-	gomod           []string
+	goModDeps       []string
+	goModPrefix     = "pkg/mod"
 )
 
 // HasPermissioner has permission interface
@@ -47,7 +48,7 @@ func RegisterViewPath(pth string) {
 					break
 				}
 				pth = strings.TrimSuffix(pth, "/views")
-				if assetFS.RegisterPath(filepath.Join(gopath, "pkg/mod", pth, "@", getDepVersionFromMod(pth), "views")) == nil {
+				if assetFS.RegisterPath(filepath.Join(gopath, getDepVersionFromMod(pth), "views")) == nil {
 					break
 				}
 			}
@@ -59,18 +60,18 @@ func equal(a, b interface{}) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-func getDepVersionFromMod(pth string) (v string) {
-	if len(gomod) == 0 {
+func getDepVersionFromMod(pth string) string {
+	if len(goModDeps) == 0 {
 		if cont, err := ioutil.ReadFile("go.mod"); err == nil {
-			gomod = strings.Split(string(cont), "\n")
+			goModDeps = strings.Split(string(cont), "\n")
 		}
 	}
 
-	for _, val := range gomod {
+	for _, val := range goModDeps {
 		if txt := strings.Trim(val, "\t\r"); strings.HasPrefix(txt, pth) {
-			v = strings.Split(txt, " ")[1]
-			return
+			return filepath.Join(goModPrefix, pth+"@"+strings.Split(txt, " ")[1])
 		}
 	}
-	return
+
+	return getDepVersionFromMod(pth[:strings.LastIndex(pth, "/")]) + pth[strings.LastIndex(pth, "/"):]
 }

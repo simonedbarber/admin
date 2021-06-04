@@ -116,7 +116,7 @@ func (admin *Admin) RegisterViewPath(pth string) {
 			}
 
 			pth = strings.TrimSuffix(pth, "/views")
-			if admin.AssetFS.RegisterPath(filepath.Join(gopath, "pkg/mod", pth, "@", getDepVersionFromMod(pth), "views")) == nil {
+			if admin.AssetFS.RegisterPath(filepath.Join(gopath, getDepVersionFromMod(pth), "views")) == nil {
 				break
 			}
 		}

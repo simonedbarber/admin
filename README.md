@@ -82,6 +82,11 @@ To print all registered routes
 adm.GetRouter().PrintRoutes()
 ```
 
+## Register ViewPath
+
+Qor will register a viewpath from vendor first. If it failed, will register viewpath from GOPATH.
+If it still failed, will register viewpath from gomod.
+
 ## License
 
 Released under the [MIT License](http://opensource.org/licenses/MIT).
