@@ -2,8 +2,10 @@ package admin
 
 import (
 	"html/template"
+	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/qor/assetfs"
 	"github.com/qor/qor"
@@ -14,6 +16,7 @@ import (
 var (
 	globalViewPaths []string
 	globalAssetFSes []assetfs.Interface
+	gomod           []string
 )
 
 // HasPermissioner has permission interface
@@ -43,6 +46,10 @@ func RegisterViewPath(pth string) {
 				if assetFS.RegisterPath(filepath.Join(gopath, "src", pth)) == nil {
 					break
 				}
+				pth = strings.TrimSuffix(pth, "/views")
+				if assetFS.RegisterPath(filepath.Join(gopath, "pkg/mod", pth, "@", getDepVersionFromMod(pth), "views")) == nil {
+					break
+				}
 			}
 		}
 	}
@@ -50,4 +57,20 @@ func RegisterViewPath(pth string) {
 
 func equal(a, b interface{}) bool {
 	return reflect.DeepEqual(a, b)
+}
+
+func getDepVersionFromMod(pth string) (v string) {
+	if len(gomod) == 0 {
+		if cont, err := ioutil.ReadFile("go.mod"); err == nil {
+			gomod = strings.Split(string(cont), "\n")
+		}
+	}
+
+	for _, val := range gomod {
+		if txt := strings.Trim(val, "\t\r"); strings.HasPrefix(txt, pth) {
+			v = strings.Split(txt, " ")[1]
+			return
+		}
+	}
+	return
 }

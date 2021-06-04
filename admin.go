@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
@@ -111,6 +112,11 @@ func (admin *Admin) RegisterViewPath(pth string) {
 	if admin.AssetFS.RegisterPath(filepath.Join(utils.AppRoot, "vendor", pth)) != nil {
 		for _, gopath := range utils.GOPATH() {
 			if admin.AssetFS.RegisterPath(filepath.Join(gopath, "src", pth)) == nil {
+				break
+			}
+
+			pth = strings.TrimSuffix(pth, "/views")
+			if admin.AssetFS.RegisterPath(filepath.Join(gopath, "pkg/mod", pth, "@", getDepVersionFromMod(pth), "views")) == nil {
 				break
 			}
 		}
