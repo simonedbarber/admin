@@ -82,6 +82,16 @@ To print all registered routes
 adm.GetRouter().PrintRoutes()
 ```
 
+## ViewPath Note
+
+QOR was developed before go mod was introduced. So it still support go path while finding its template files. The priority is
+
+1. check vendor, if not found
+2. check $GOPATH/src/github.com/qor/admin/views, if still not found
+3. load view path from $GOPATH/pkg/mod/github.com/qor/admin@v0.x/views. the version would be detected automatically by you go.sum file
+
+So if you want to use the template under the pkg/mod, make sure $GOPATH/src/github.com/qor/admin is absent.
+
 ## License
 
 Released under the [MIT License](http://opensource.org/licenses/MIT).
