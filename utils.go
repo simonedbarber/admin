@@ -3,6 +3,7 @@ package admin
 import (
 	"html/template"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -40,19 +41,22 @@ type I18n interface {
 // RegisterViewPath register view path for all assetfs
 func RegisterViewPath(pth string) {
 	globalViewPaths = append(globalViewPaths, pth)
-
+	var err error
 	for _, assetFS := range globalAssetFSes {
-		if assetFS.RegisterPath(filepath.Join(utils.AppRoot, "vendor", pth)) != nil {
+		if err = assetFS.RegisterPath(filepath.Join(utils.AppRoot, "vendor", pth)); err != nil {
 			for _, gopath := range utils.GOPATH() {
-				if assetFS.RegisterPath(filepath.Join(gopath, getDepVersionFromMod(pth))) == nil {
+				if err = assetFS.RegisterPath(filepath.Join(gopath, getDepVersionFromMod(pth))); err == nil {
 					break
 				}
 
-				if assetFS.RegisterPath(filepath.Join(gopath, "src", pth)) == nil {
+				if err = assetFS.RegisterPath(filepath.Join(gopath, "src", pth)); err == nil {
 					break
 				}
 			}
 		}
+	}
+	if err != nil {
+		log.Printf("RegisterViewPathError: %s %s!", pth, err.Error())
 	}
 }
 
