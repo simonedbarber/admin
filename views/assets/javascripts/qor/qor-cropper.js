@@ -407,11 +407,12 @@
                 sizeData = $target.data(),
                 sizeName = sizeData.sizeName || 'original',
                 sizeResolution = sizeData.sizeResolution,
-                originalUrl = /\.original\./.test(sizeData.originalUrl)
-                    ? sizeData.originalUrl
+                originalUrl = (sizeData && sizeData.originalUrl && $target.attr('data-original-url'))
+                    ? (/\.original\./.test(sizeData.originalUrl) ? sizeData.originalUrl
                     : /\.original\./.test($target.attr('data-original-url'))
                     ? $target.attr('data-original-url')
-                    : $target.attr('data-original-url').replace(/file\./, 'file.original.'),
+                    : $target.attr('data-original-url').replace(/file\./, 'file.original.'))
+                    : $target.attr('src'),
                 $clone = $(`<img src=${originalUrl}>`),
                 data = this.data || {},
                 _this = this,

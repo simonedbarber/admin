@@ -54,7 +54,7 @@ func main() {
   Admin.AddResource(&User{})
   Admin.AddResource(&Product{})
 
-  // initalize an HTTP request multiplexer
+  // initialize an HTTP request multiplexer
   mux := http.NewServeMux()
 
   // Mount admin interface to mux
@@ -228,6 +228,22 @@ func (fac *Factory) AssignVersionName(db *gorm.DB) {
 ## Documentation
 
 <https://doc.getqor.com/admin>
+
+To print all registered routes
+```go
+// adm is a QOR admin instance
+adm.GetRouter().PrintRoutes()
+```
+
+## ViewPath Note
+
+QOR was developed before go mod was introduced. So it still support go path while finding its template files. The priority is
+
+1. check vendor, if not found
+2. check $GOPATH/src/github.com/qor/admin/views, if still not found
+3. load view path from $GOPATH/pkg/mod/github.com/qor/admin@v0.x/views. the version would be detected automatically by you go.sum file
+
+So if you want to use the template under the pkg/mod, make sure $GOPATH/src/github.com/qor/admin is absent.
 
 ## License
 

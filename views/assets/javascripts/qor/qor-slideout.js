@@ -226,13 +226,62 @@
         .toggle();
     },
 
+    checkRichedutorHTMLTags: function(source){    
+    var DOMHolderArray = new Array();
+    var tagsArray = new Array();
+    var lines = source.value.split('\n');
+    for (var x = 0; x < lines.length; x++) {
+        tagsArray = lines[x].match(/<(\/{1})?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)>/g);
+        if (tagsArray) {
+            for (var i = 0; i < tagsArray.length; i++) {
+                if (tagsArray[i].indexOf('</') >= 0) {
+                    let elementToPop = tagsArray[i].substr(2, tagsArray[i].length - 3);
+                    elementToPop = elementToPop.replace(/ /g, '');
+                    for (var j = DOMHolderArray.length - 1; j >= 0; j--) {
+                        if (DOMHolderArray[j].element == elementToPop) {
+                            DOMHolderArray.splice(j, 1);
+                            if (elementToPop != 'html') {
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    var tag = new Object();
+                    tag.full = tagsArray[i];
+                    tag.line = x + 1;
+                    if (tag.full.indexOf(' ') > 0) {
+                        tag.element = tag.full.substr(1, tag.full.indexOf(' ') - 1);
+                    } else {
+                        tag.element = tag.full.substr(1, tag.full.length - 2);
+                    }
+                    var selfClosingTags = new Array('area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr');
+                    var isSelfClosing = false;
+                    for (var y = 0; y < selfClosingTags.length; y++) {
+                        if (selfClosingTags[y].localeCompare(tag.element) == 0) {
+                            isSelfClosing = true;
+                        }
+                    }
+                    if (isSelfClosing == false) {
+                        DOMHolderArray.push(tag);
+                    }
+                }
+
+            }
+        }
+      }
+
+      return DOMHolderArray.length;
+    
+    },
+
     submit: function(e) {
       let $slideout = this.$slideout,
         form = e.target,
         $form = $(form),
         _this = this,
         $loading = $(QOR.$formLoading),
-        $submit = $form.find(":submit");
+        $submit = $form.find(":submit"),
+        hasNotClosedTags = false;
 
       if ($form.data("normal-submit")) {
         return;
@@ -244,6 +293,17 @@
         return;
       }
       e.preventDefault();
+
+      document.querySelectorAll('.qor-redactor-box .redactor-source').forEach(function(item) {
+        if(_this.checkRichedutorHTMLTags(item)){
+          hasNotClosedTags=true;
+        }
+      });
+
+      if(hasNotClosedTags){
+        QOR.qorConfirm(QOR_Translations.slideoutCheckHTMLTagsError);
+        return false;
+      }
 
       this.submitXHR = $.ajax($form.prop("action"), {
         method: $form.prop("method"),
