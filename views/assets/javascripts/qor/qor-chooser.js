@@ -60,6 +60,11 @@
 
             $this
                 .on('select2:select', function(evt) {
+                    if(evt.params.data.element.className === 'select2__select_all') {
+                        $(evt.target).find('option').prop('selected', 'selected');
+                        $(evt.target).find('.select2__select_all').prop('selected', false);
+                        $(evt.target).trigger('change');
+                    }
                     $(evt.target).attr('chooser-selected', 'true');
                 })
                 .on('select2:unselect', function(evt) {
