@@ -60,11 +60,6 @@
 
             $this
                 .on('select2:select', function(evt) {
-                    if(evt.params.data.element.className === 'select2__select_all') {
-                        $(evt.target).find('option').prop('selected', 'selected');
-                        $(evt.target).find('.select2__select_all').prop('selected', false);
-                        $(evt.target).trigger('change');
-                    }
                     $(evt.target).attr('chooser-selected', 'true');
                 })
                 .on('select2:unselect', function(evt) {
@@ -72,6 +67,20 @@
                 });
 
             $this.select2(option);
+
+            if ($this.is('[multiple]')) {
+                $this.next('.select2-container').find('.select2-selection--multiple').prepend(
+                    '<span class="select2-selection__select-all" title="Select all items">&equiv;</span>'
+                );
+
+                $this.next('.select2-container').find('.select2-selection__select-all').on('click', function(evt) {
+                    evt.stopPropagation();
+
+                    var $select = $(evt.target).closest('.select2-container').prev('select[data-toggle="'+NAMESPACE+'"]');
+                    $select.find('option').prop('selected', 'selected');
+                    $select.trigger('change');
+                });
+            }
 
             // reset select2 container width
             this.resetSelect2Width();
