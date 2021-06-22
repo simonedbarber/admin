@@ -3,6 +3,7 @@ package admin
 import (
 	"html/template"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -40,19 +41,22 @@ type I18n interface {
 // RegisterViewPath register view path for all assetfs
 func RegisterViewPath(pth string) {
 	globalViewPaths = append(globalViewPaths, pth)
-
+	var err error
 	for _, assetFS := range globalAssetFSes {
-		if assetFS.RegisterPath(filepath.Join(utils.AppRoot, "vendor", pth)) != nil {
+		if err = assetFS.RegisterPath(filepath.Join(utils.AppRoot, "vendor", pth)); err != nil {
 			for _, gopath := range utils.GOPATH() {
-				if assetFS.RegisterPath(filepath.Join(gopath, "src", pth)) == nil {
+				if err = assetFS.RegisterPath(filepath.Join(gopath, getDepVersionFromMod(pth))); err == nil {
 					break
 				}
-				pth = strings.TrimSuffix(pth, "/views")
-				if assetFS.RegisterPath(filepath.Join(gopath, getDepVersionFromMod(pth), "views")) == nil {
+
+				if err = assetFS.RegisterPath(filepath.Join(gopath, "src", pth)); err == nil {
 					break
 				}
 			}
 		}
+	}
+	if err != nil {
+		log.Printf("RegisterViewPathError: %s %s!", pth, err.Error())
 	}
 }
 
@@ -71,6 +75,10 @@ func getDepVersionFromMod(pth string) string {
 		if txt := strings.Trim(val, "\t\r"); strings.HasPrefix(txt, pth) {
 			return filepath.Join(goModPrefix, pth+"@"+strings.Split(txt, " ")[1])
 		}
+	}
+
+	if strings.LastIndex(pth, "/") == -1 {
+		return pth
 	}
 
 	return getDepVersionFromMod(pth[:strings.LastIndex(pth, "/")]) + pth[strings.LastIndex(pth, "/"):]
