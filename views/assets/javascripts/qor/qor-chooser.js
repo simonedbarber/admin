@@ -68,18 +68,15 @@
 
             $this.select2(option);
 
-            if ($this.is('[multiple]')) {
-                $this.next('.select2-container').find('.select2-selection--multiple').prepend(
-                    '<span class="select2-selection__select-all" title="Select all items">&equiv;</span>'
-                );
-
-                $this.next('.select2-container').find('.select2-selection__select-all').on('click', function(evt) {
-                    evt.stopPropagation();
-
-                    var $select = $(evt.target).closest('.select2-container').prev('select[data-toggle="'+NAMESPACE+'"]');
-                    $select.find('option').prop('selected', 'selected');
-                    $select.trigger('change');
-                });
+            if ($this.is('[selectall]')) {
+                $this.next('.select2-container').find('.select2-selection--multiple')
+                    .prepend('<span class="select2-selection__select-all" title="Select all items">&equiv;</span>')
+                    .find('.select2-selection__select-all').on('click', function(evt) {
+                        var $select = $(evt.target).closest('.select2-container').prev('select[data-toggle="'+NAMESPACE+'"]');
+                        evt.stopPropagation();
+                        $select.find('option').prop('selected', 'selected');
+                        $select.trigger('change');
+                    });
             }
 
             // reset select2 container width
