@@ -74,8 +74,10 @@
                         url: select2Data.remoteUrl,
                         dataType: 'json'
                     }).then(function (data) {
-                        data.forEach(function(item) {             
-                            $this.append(new Option(item.Name, item.ID, false, false));
+                        data.forEach(function(item) {  
+                            if($this.find('option[value="'+item.ID+'"]').length < 1) {
+                                $this.append(new Option(item.Name, item.ID, false, false));
+                            }
                         });
                     });
                 }
