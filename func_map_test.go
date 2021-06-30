@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 )
 
@@ -53,5 +54,41 @@ func TestFuncMaps(t *testing.T) {
 		if !hasError {
 			fmt.Printf(color.GreenString(fmt.Sprintf("Admin FuncMap unsafe_raw #%v: Success\n", i+1)))
 		}
+	}
+}
+
+type FakeStruct struct {
+	gorm.Model
+	Name string
+}
+
+func TestIsEqual(t *testing.T) {
+	c1 := FakeStruct{Name: "c1"}
+	c1.ID = 1
+	c2 := FakeStruct{Name: "c2"}
+	c2.ID = 1
+
+	context := Context{
+		Admin: New(&qor.Config{}),
+	}
+	if !context.isEqual(c1, c2) {
+		t.Error("same primary key is not equal")
+	}
+
+	c1.ID = 2
+	if context.isEqual(c1, c2) {
+		t.Error("different primary key is equal")
+	}
+
+	a := "a test"
+	b := "another one"
+	if context.isEqual(a, b) {
+		t.Error("different string is equal")
+	}
+
+	c := 11
+	d := 11
+	if !context.isEqual(c, d) {
+		t.Error("same int is not equal")
 	}
 }
