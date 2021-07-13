@@ -5,11 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
 )
 
 type Group struct {
@@ -93,26 +91,17 @@ const (
 
 // ResourceAllowedByGroup checks if current user allowed to access given resource
 func ResourceAllowedByGroup(context *Context, resName string) bool {
-	return checkPermission(context.Context, resName, "", permissionTypeResource)
+	return checkPermission(context, resName, "", permissionTypeResource)
 }
 
 // ActionAllowedByGroup checks if current user allowed to access given action of given resource
-func ActionAllowedByGroup(context *qor.Context, resName string, actionName string) bool {
+func ActionAllowedByGroup(context *Context, resName string, actionName string) bool {
 	return checkPermission(context, resName, actionName, permissionTypeAction)
 }
 
-func checkPermission(context *qor.Context, resName string, actionName string, permissionType string) (result bool) {
-	uid := context.CurrentUser.GetID()
-	db := context.DB.New()
-
-	idStr := fmt.Sprintf("%d", uid)
-	groups := []Group{}
-	if err := db.Find(&groups).Error; err != nil {
-		log.Print(err.Error())
-		return false
-	}
-
-	for _, g := range groups {
+func checkPermission(context *Context, resName string, actionName string, permissionType string) (result bool) {
+	idStr := fmt.Sprint(context.CurrentUser.GetID())
+	for _, g := range context.Groups {
 		if len(g.ResourcePermissions) != 0 && g.IncludeUserID(idStr) {
 			switch permissionType {
 			case permissionTypeResource:

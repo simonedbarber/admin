@@ -24,6 +24,7 @@ type Context struct {
 	Settings     map[string]interface{}
 	RouteHandler *routeHandler
 	Result       interface{}
+	Groups       []Group
 
 	funcMaps template.FuncMap
 }

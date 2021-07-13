@@ -160,10 +160,6 @@ func (action Action) ToParam() string {
 
 // HasPermission check if current user has permission for the action
 func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Context) (result bool) {
-	// Call this for action route handler permission check.
-	// This will be executed twice if this is called from IsAllowed, but always return same result
-	result = action.HasGroupPermission(context)
-
 	if action.Permission != nil {
 		var roles = []interface{}{}
 		for _, role := range context.Roles {
@@ -175,7 +171,7 @@ func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Conte
 	return
 }
 
-func (action Action) HasGroupPermission(context *qor.Context) bool {
+func (action Action) HasGroupPermission(context *Context) bool {
 	if action.GetBelongedResource().GetAdmin().IsGroupEnabled() {
 		if action.SkipGroupControl {
 			return true
@@ -236,7 +232,7 @@ func (action Action) IsAllowed(mode roles.PermissionMode, context *Context, reco
 		}
 	}
 
-	result = action.HasGroupPermission(context.Context)
+	result = action.HasGroupPermission(context)
 
 	if action.Permission != nil {
 		result = action.HasPermission(mode, context.Context)

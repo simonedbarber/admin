@@ -232,6 +232,7 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		context.SetDB(context.GetDB().Set("qor:current_user", context.CurrentUser))
 	}
 	context.Roles = roles.MatchedRoles(req, currentUser)
+	context.DB.New().Find(&context.Groups)
 
 	switch req.Method {
 	case "GET":
