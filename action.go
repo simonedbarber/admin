@@ -160,6 +160,11 @@ func (action Action) ToParam() string {
 
 // HasPermission check if current user has permission for the action
 func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Context) (result bool) {
+	if context.Request != nil {
+		actx := context.Request.Context().Value(AdminContext).(*Context)
+		result = action.HasGroupPermission(actx)
+	}
+
 	if action.Permission != nil {
 		var roles = []interface{}{}
 		for _, role := range context.Roles {
@@ -231,9 +236,7 @@ func (action Action) IsAllowed(mode roles.PermissionMode, context *Context, reco
 			}
 		}
 	}
-
 	result = action.HasGroupPermission(context)
-
 	if action.Permission != nil {
 		result = action.HasPermission(mode, context.Context)
 		return

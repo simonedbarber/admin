@@ -1,6 +1,7 @@
 package admin
 
 import (
+	sctx "context"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,6 +31,10 @@ type Middleware struct {
 	Handler func(*Context, *Middleware)
 	next    *Middleware
 }
+
+type contextKey int
+
+const AdminContext contextKey = iota
 
 // Next will call the next middleware
 func (middleware Middleware) Next(context *Context) {
@@ -234,6 +239,10 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	context.Roles = roles.MatchedRoles(req, currentUser)
 	context.DB.New().Find(&context.Groups)
 
+	rctx := context.Request.Context()
+	rctx = sctx.WithValue(rctx, AdminContext, context)
+	context.Request = context.Request.WithContext(rctx)
+
 	switch req.Method {
 	case "GET":
 		permissionMode = roles.Read
@@ -249,16 +258,19 @@ func (serveMux *serveMux) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, handler := range handlers {
 		if params, _, ok := utils.ParamsMatch(handler.Path, RelativePath); ok && handler.HasPermission(permissionMode, context) {
 			if len(params) > 0 {
-				req.URL.RawQuery = url.Values(params).Encode() + "&" + req.URL.RawQuery
+				context.Request.URL.RawQuery = url.Values(params).Encode() + "&" + req.URL.RawQuery
 			}
 			context.RouteHandler = handler
 
 			context.setResource(handler.Config.Resource)
 			if context.Resource == nil {
-				if matches := regexp.MustCompile(path.Join(admin.router.Prefix, `([^/]+)`)).FindStringSubmatch(req.URL.Path); len(matches) > 1 {
+				if matches := regexp.MustCompile(path.Join(admin.router.Prefix, `([^/]+)`)).FindStringSubmatch(context.Request.URL.Path); len(matches) > 1 {
 					context.setResource(admin.GetResource(matches[1]))
 				}
 			}
+
+			rctx = sctx.WithValue(rctx, AdminContext, context)
+			context.Request = context.Request.WithContext(rctx)
 			break
 		}
 	}
