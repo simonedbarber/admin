@@ -16,6 +16,7 @@ import (
 	"runtime/debug"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
@@ -471,7 +472,9 @@ func (context *Context) renderForm(value interface{}, sections []*Section) templ
 }
 
 func (context *Context) renderSections(value interface{}, sections []*Section, prefix []string, writer *bytes.Buffer, kind string) {
-	for _, section := range sections {
+	prev := ""
+	self := ""
+	for i, section := range sections {
 		var rows []struct {
 			Length      int
 			ColumnsHTML template.HTML
@@ -495,11 +498,22 @@ func (context *Context) renderSections(value interface{}, sections []*Section, p
 			})
 		}
 
+		// To mark each section in chain. so that we can use javascript to manapulate UI
+		if i == 0 {
+			prev = fmt.Sprintf("%d-%d", i, time.Now().UTC().UnixNano())
+			self = fmt.Sprintf("%d-%d", i, time.Now().UTC().UnixNano())
+		} else {
+			prev = self
+			self = fmt.Sprintf("%d-%d", i, time.Now().UTC().UnixNano())
+		}
+
 		if len(rows) > 0 {
 			var data = map[string]interface{}{
 				"Section": section,
 				"Title":   template.HTML(section.Title),
 				"Rows":    rows,
+				"Self":    self,
+				"Prev":    prev,
 			}
 			if content, err := context.Asset("metas/section.tmpl"); err == nil {
 				if tmpl, err := template.New("section").Funcs(context.FuncMap()).Parse(string(content)); err == nil {
