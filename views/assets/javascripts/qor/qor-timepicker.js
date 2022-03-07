@@ -30,8 +30,9 @@
         this.formatDate = null;
         this.pickerData = this.$element.data();
         this.parent = this.$element.closest(CLASS_PARENT);
+        this.isTimePicker = this.parent.data('picker-type') == 'time';
         this.isDateTimePicker = this.parent.data('picker-type') == 'datetime';
-        this.$targetInput = this.parent.find(this.pickerData.targetInput || (this.isDateTimePicker ? '.qor-datetimepicker__input' : '.qor-datepicker__input'));
+        this.$targetInput = this.parent.find(this.pickerData.targetInput || (this.isDateTimePicker || this.isTimePicker ? '.qor-datetimepicker__input' : '.qor-datepicker__input'));
         this.init();
     }
 
@@ -62,7 +63,7 @@
                 scrollDefault: 'now'
             };
 
-            if (this.isDateTimePicker) {
+            if (this.isDateTimePicker || this.isTimePicker) {
                 this.$targetInput
                     .qorTimepicker(pickerOptions)
                     .on(EVENT_CHANGE_TIME, $.proxy(this.changeTime, this))
@@ -77,7 +78,7 @@
         unbind: function() {
             this.$element.off(EVENT_CLICK, this.show);
 
-            if (this.isDateTimePicker) {
+            if (this.isDateTimePicker || this.isTimePicker) {
                 this.$targetInput
                     .off(EVENT_CHANGE_TIME, this.changeTime)
                     .off(EVENT_BLUR, this.blur)
@@ -151,7 +152,10 @@
                 }
             }
 
-            if (this.checkDate(newDateValue) && this.checkTime(newTimeValue)) {
+            if (this.isTimePicker && this.checkTime(newTimeValue)) {
+                this.$targetInput.val(newTimeValue);
+                this.oldValue = this.$targetInput.val();
+            } else if (this.checkDate(newDateValue) && this.checkTime(newTimeValue)) {
                 this.$targetInput.val(newDateValue + ' ' + newTimeValue);
                 this.oldValue = this.$targetInput.val();
             } else {
@@ -189,20 +193,22 @@
                 .html();
             var newValue;
 
-            if (!oldValue) {
-                newValue = this.dateValueNow + ' ' + selectedTime;
-            } else if (hasTime) {
-                newValue = oldValue.replace(timeReg, selectedTime);
-            } else {
-                newValue = oldValue + ' ' + selectedTime;
+            if (!this.isTimePicker) {
+                if (!oldValue) {
+                    newValue = this.dateValueNow + ' ' + selectedTime;
+                } else if (hasTime) {
+                    newValue = oldValue.replace(timeReg, selectedTime);
+                } else {
+                    newValue = oldValue + ' ' + selectedTime;
+                }
+
+                $targetInput.val(newValue);
+                $targetInput.trigger('change');
             }
-            
-            $targetInput.val(newValue);
-            $targetInput.trigger('change');
         },
 
         show: function() {
-            if (!this.isDateTimePicker) {
+            if (!this.isDateTimePicker && !this.isTimePicker) {
                 return;
             }
 
