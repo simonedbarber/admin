@@ -193,7 +193,11 @@
                 .html();
             var newValue;
 
-            if (!this.isTimePicker) {
+            if (this.isTimePicker) {
+                newValue = selectedTime;
+
+                $targetInput.val(newValue);
+            } else {
                 if (!oldValue) {
                     newValue = this.dateValueNow + ' ' + selectedTime;
                 } else if (hasTime) {
