@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
 	"github.com/qor/assetfs"
 	"github.com/qor/qor"
@@ -15,6 +14,7 @@ import (
 	"github.com/qor/session"
 	"github.com/qor/session/manager"
 	"github.com/theplant/cldr"
+	"gorm.io/gorm"
 )
 
 // AdminConfig admin config struct

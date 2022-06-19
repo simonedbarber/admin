@@ -3,10 +3,10 @@ package admin
 import (
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
+	"gorm.io/gorm"
 )
 
 // Filter filter definiation

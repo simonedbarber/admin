@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/fatih/color"
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"gorm.io/gorm"
 )
 
 type rawTestCase struct {

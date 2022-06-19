@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
 	. "github.com/qor/admin/tests/dummy"
+	"gorm.io/gorm"
 )
 
 var (
