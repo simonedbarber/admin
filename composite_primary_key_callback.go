@@ -45,10 +45,12 @@ func compositePrimaryKeyQueryCallback(db *gorm.DB) {
 		return
 	}
 
-	tableName := db.Begin().Statement.Table
-	for _, primaryField := range db.Statement.Schema.PrimaryFields {
-		if value, ok := db.Get(fmt.Sprintf("primary_key[%v_%v]", tableName, primaryField.DBName)); ok && value != "" {
-			db.Where(fmt.Sprintf("%v = ?", db.NamingStrategy.ColumnName("", primaryField.DBName)), value)
+	if db.Statement.Model != nil {
+		tableName := db.Statement.Table
+		for _, primaryField := range db.Statement.Schema.PrimaryFields {
+			if value, ok := db.Get(fmt.Sprintf("primary_key[%v_%v]", tableName, primaryField.DBName)); ok && value != "" {
+				db.Where(fmt.Sprintf("%v = ?", db.NamingStrategy.ColumnName("", primaryField.DBName)), value)
+			}
 		}
 	}
 }
