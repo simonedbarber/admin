@@ -248,7 +248,9 @@ func (s *Searcher) parseContext(withDefaultScope bool) *qor.Context {
 
 	// pagination
 	context.SetDB(db.Model(s.Resource.Value).Set("qor:getting_total_count", true))
-	s.Resource.CallFindMany(&s.Pagination.Total, context)
+	total := int64(0)
+	s.Resource.CallFindMany(&total, context)
+	s.Pagination.Total = int(total)
 
 	if s.Pagination.CurrentPage == 0 {
 		if s.Context.Request != nil {
