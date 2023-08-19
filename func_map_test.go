@@ -7,8 +7,8 @@ import (
 	"github.com/simonedbarber/go-template/html/template"
 
 	"github.com/fatih/color"
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"gorm.io/gorm"
 )
 
 type rawTestCase struct {

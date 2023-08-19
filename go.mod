@@ -16,4 +16,6 @@ require (
 	github.com/theplant/cldr v0.0.0-20190423050709-9f76f7ce4ee8
 	github.com/theplant/htmltestingutils v0.0.0-20190423050759-0e06de7b6967
 	github.com/theplant/testingutils v0.0.0-20190603093022-26d8b4d95c61
+	golang.org/x/net v0.0.0-20220526153639-5463443f8c37 // indirect
+	gorm.io/gorm v1.23.5
 )

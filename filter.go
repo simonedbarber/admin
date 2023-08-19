@@ -1,13 +1,12 @@
 package admin
 
 import (
-	"log"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
+	"gorm.io/gorm"
 )
 
 // Filter filter definiation
@@ -89,7 +88,6 @@ func (res *Resource) Filter(filter *Filter) {
 							field.Operation = "contains"
 						}
 					}
-					log.Printf("FILTER: %v", []filterField{field})
 					return filterResourceByFields(res, []filterField{field}, keyword, db, filterArgument.Context)
 				}
 			}

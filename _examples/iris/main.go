@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/admin"
+	"gorm.io/gorm"
 
 	"github.com/kataras/iris/v12"
 )

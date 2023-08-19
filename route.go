@@ -346,8 +346,6 @@ func (admin *Admin) RegisterResourceRouters(res *Resource, actions ...string) {
 
 // RegisterRoute register route
 func (res *Resource) RegisterRoute(method string, relativePath string, handler requestHandler, config *RouteConfig) {
-	log.Printf("ROUTE: %v", relativePath)
-
 	if config == nil {
 		config = &RouteConfig{}
 	}

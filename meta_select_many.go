@@ -7,7 +7,6 @@ import (
 
 	"github.com/simonedbarber/go-template/html/template"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
@@ -73,11 +72,8 @@ func (selectManyConfig *SelectManyConfig) ConfigureQorMeta(metaor resource.Metao
 
 // ConfigureQORAdminFilter configure admin filter
 func (selectManyConfig *SelectManyConfig) ConfigureQORAdminFilter(filter *Filter) {
-	var structField *gorm.StructField
-
-	if field, ok := filter.Resource.GetAdmin().DB.NewScope(filter.Resource.Value).FieldByName(filter.Name); ok {
-		structField = field.StructField
-	}
+	scope := utils.NewScope(filter.Resource.Value)
+	structField := scope.LookUpField(filter.Name)
 
 	selectManyConfig.SelectOneConfig.Collection = selectManyConfig.Collection
 	selectManyConfig.SelectOneConfig.SelectMode = selectManyConfig.SelectMode

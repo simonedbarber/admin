@@ -7,7 +7,6 @@ import (
 
 	"github.com/simonedbarber/go-template/html/template"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
 	"github.com/qor/assetfs"
 	"github.com/qor/qor"
@@ -16,6 +15,7 @@ import (
 	"github.com/qor/session"
 	"github.com/qor/session/manager"
 	"github.com/theplant/cldr"
+	"gorm.io/gorm"
 )
 
 // AdminConfig admin config struct
@@ -208,23 +208,25 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 
 	res.configure()
 
-	res.Action(&Action{
-		Name:   "Delete",
-		Method: "DELETE",
-		URL: func(record interface{}, context *Context) string {
-			return context.URLFor(record, res)
-		},
-		Permission: res.Config.Permission,
-		Modes:      []string{"menu_item"},
-	})
 	if !res.Config.Invisible {
+		res.Action(&Action{
+			Name:   "Delete",
+			Method: "DELETE",
+			URL: func(record interface{}, context *Context) string {
+				return context.URLFor(record, res)
+			},
+			Permission: res.Config.Permission,
+			Modes:      []string{"menu_item"},
+		})
+
 		menuName := res.Name
 		if !res.Config.Singleton {
 			menuName = inflection.Plural(res.Name)
 		}
 		admin.AddMenu(&Menu{Name: menuName, IconName: res.Config.IconName, Permissioner: res, Priority: res.Config.Priority, Ancestors: res.Config.Menu, RelativePath: res.ToParam()})
+
+		admin.RegisterResourceRouters(res, "create", "update", "read", "delete")
 	}
-	admin.RegisterResourceRouters(res, "create", "update", "read", "delete")
 
 	return res
 }
