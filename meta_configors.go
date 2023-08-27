@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/qor/qor"
+	"github.com/simonedbarber/qor"
 )
 
 // metaConfig meta config

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qor/responder"
+	"github.com/simonedbarber/responder"
 	"gorm.io/gorm"
 )
 

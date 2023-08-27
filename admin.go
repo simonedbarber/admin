@@ -8,12 +8,12 @@ import (
 	"github.com/simonedbarber/go-template/html/template"
 
 	"github.com/jinzhu/inflection"
-	"github.com/qor/assetfs"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
-	"github.com/qor/session"
-	"github.com/qor/session/manager"
+	"github.com/simonedbarber/assetfs"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/session"
+	"github.com/simonedbarber/session/manager"
 	"github.com/theplant/cldr"
 	"gorm.io/gorm"
 )
@@ -102,7 +102,7 @@ func (admin *Admin) SetAssetFS(assetFS assetfs.Interface) {
 
 	admin.AssetFS.RegisterPath(filepath.Join(utils.AppRoot, "app/views/qor"))
 	// Removed so all Admin assets are from project directory as qor/admin assets were merging
-	//admin.RegisterViewPath("github.com/qor/admin/views")
+	//admin.RegisterViewPath("github.com/simonedbarber/admin/views")
 
 	for _, viewPath := range globalViewPaths {
 		admin.RegisterViewPath(viewPath)

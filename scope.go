@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/qor/qor"
+	"github.com/simonedbarber/qor"
 	"gorm.io/gorm"
 )
 

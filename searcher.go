@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	"github.com/simonedbarber/qor/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
@@ -478,14 +478,16 @@ func filterResourceByFields(res *Resource, filterFields []filterField, keyword s
 				}
 			}
 
-			if field, ok := currentScope.FieldByName(column); ok {
-				if field.IsNormal {
-					switch field.Field.Kind() {
+			if field := currentScope.LookUpField(column); field != nil {
+
+				if rvfield := rfValue.FieldByName(column); rvfield.FieldByName(field.Name).Kind() != reflect.Struct {
+					switch rvfield.FieldByName(field.Name).Kind() {
 					case reflect.String:
 						appendString(field)
 					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 						appendInteger(field)
 					case reflect.Float32, reflect.Float64:
+						appendFloat(field)
 					case reflect.Bool:
 						appendBool(field)
 					case reflect.Struct, reflect.Ptr:

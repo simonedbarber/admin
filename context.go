@@ -9,10 +9,10 @@ import (
 
 	"github.com/simonedbarber/go-template/html/template"
 
-	"github.com/qor/qor"
-	"github.com/qor/qor/utils"
-	"github.com/qor/roles"
-	"github.com/qor/session"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/roles"
+	"github.com/simonedbarber/session"
 )
 
 // Context admin context, which is used for admin controller

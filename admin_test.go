@@ -3,8 +3,8 @@ package admin
 import (
 	"testing"
 
-	"github.com/qor/qor"
-	"github.com/qor/qor/test/utils"
+	"github.com/simonedbarber//qor/test/utils"
+	"github.com/simonedbarber/qor"
 )
 
 type User struct {

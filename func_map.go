@@ -21,11 +21,11 @@ import (
 
 	sprig "github.com/go-task/slim-sprig"
 	"github.com/jinzhu/inflection"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
-	"github.com/qor/roles"
-	"github.com/qor/session"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/roles"
+	"github.com/simonedbarber/session"
 )
 
 // FuncMap funcs map for current context
@@ -1290,7 +1290,7 @@ func (context *Context) t(values ...interface{}) template.HTML {
 
 func (context *Context) isSortableMeta(meta *Meta) bool {
 	for _, attr := range context.Resource.SortableAttrs() {
-		if attr == meta.Name && meta.FieldStruct != nil && meta.FieldStruct.IsNormal && meta.FieldStruct.DBName != "" {
+		if attr == meta.Name && meta.FieldStruct != nil && meta.FieldStruct.DBName != "" {
 			return true
 		}
 	}
@@ -1517,9 +1517,10 @@ func (context *Context) getColumns(data interface{}, fieldName string) (any, err
 	}
 
 	values := reflect.New(reflect.SliceOf(elemType)).Interface()
-	model := context.GetDB().NewScope(values).GetModelStruct()
+	// create a new instance of type of values
+
 	// Query the database and scan the result into the values slice
-	err := context.GetDB().Model(model).Find(values).Error
+	err := context.GetDB().Find(values).Error
 	if err != nil {
 		return nil, err
 	}

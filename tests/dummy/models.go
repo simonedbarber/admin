@@ -3,7 +3,7 @@ package dummy
 import (
 	"time"
 
-	"github.com/qor/media/oss"
+	"github.com/simonedbarber/media/oss"
 	"gorm.io/gorm"
 )
 

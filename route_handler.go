@@ -3,8 +3,8 @@ package admin
 import (
 	"strings"
 
-	"github.com/qor/qor"
-	"github.com/qor/roles"
+	"github.com/simonedbarber//roles"
+	"github.com/simonedbarber/qor"
 )
 
 // RouteConfig config for admin routes

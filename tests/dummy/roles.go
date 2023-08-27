@@ -3,7 +3,7 @@ package dummy
 import (
 	"net/http"
 
-	"github.com/qor/roles"
+	"github.com/simonedbarber/roles"
 )
 
 const (
