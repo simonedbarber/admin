@@ -3,11 +3,11 @@ package dummy
 import (
 	"fmt"
 
-	"github.com/simonedbarber//media"
-	"github.com/simonedbarber//qor"
-	"github.com/simonedbarber//qor/test/utils"
-	"github.com/simonedbarber//roles"
 	"github.com/simonedbarber/admin"
+	"github.com/simonedbarber/media"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/test/utils"
+	"github.com/simonedbarber/roles"
 )
 
 // NewDummyAdmin generate admin for dummy app

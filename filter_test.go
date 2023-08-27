@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/simonedbarber//admin/tests/dummy"
-	qorTestUtils "github.com/simonedbarber//qor/test/utils"
 	"github.com/simonedbarber/admin"
+	. "github.com/simonedbarber/admin/tests/dummy"
+	qorTestUtils "github.com/simonedbarber/qor/test/utils"
 )
 
 const FORMTYPE = "application/x-www-form-urlencoded"

@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/jinzhu/now"
-	. "github.com/simonedbarber//admin/tests/dummy"
-	qorTestUtils "github.com/simonedbarber//qor/test/utils"
 	"github.com/simonedbarber/admin"
+	. "github.com/simonedbarber/admin/tests/dummy"
+	qorTestUtils "github.com/simonedbarber/qor/test/utils"
 	"github.com/theplant/testingutils"
 	"gorm.io/gorm"
 )

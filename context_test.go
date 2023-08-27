@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/simonedbarber//admin/tests/dummy"
-	"github.com/simonedbarber//qor"
-	"github.com/simonedbarber//roles"
 	"github.com/simonedbarber/admin"
+	. "github.com/simonedbarber/admin/tests/dummy"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/roles"
 )
 
 // Template helpers test

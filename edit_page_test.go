@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	qorTestUtils "github.com/simonedbarber//qor/test/utils"
 	. "github.com/simonedbarber/admin/tests/dummy"
+	qorTestUtils "github.com/simonedbarber/qor/test/utils"
 	"github.com/theplant/htmltestingutils"
 )
 
