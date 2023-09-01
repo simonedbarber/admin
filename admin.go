@@ -7,15 +7,15 @@ import (
 
 	"github.com/simonedbarber/go-template/html/template"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
-	"github.com/qor/assetfs"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
-	"github.com/qor/session"
-	"github.com/qor/session/manager"
+	"github.com/simonedbarber/assetfs"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/session"
+	"github.com/simonedbarber/session/manager"
 	"github.com/theplant/cldr"
+	"gorm.io/gorm"
 )
 
 // AdminConfig admin config struct
@@ -102,7 +102,7 @@ func (admin *Admin) SetAssetFS(assetFS assetfs.Interface) {
 
 	admin.AssetFS.RegisterPath(filepath.Join(utils.AppRoot, "app/views/qor"))
 	// Removed so all Admin assets are from project directory as qor/admin assets were merging
-	//admin.RegisterViewPath("github.com/qor/admin/views")
+	//admin.RegisterViewPath("github.com/simonedbarber/admin/views")
 
 	for _, viewPath := range globalViewPaths {
 		admin.RegisterViewPath(viewPath)
@@ -208,23 +208,25 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 
 	res.configure()
 
-	res.Action(&Action{
-		Name:   "Delete",
-		Method: "DELETE",
-		URL: func(record interface{}, context *Context) string {
-			return context.URLFor(record, res)
-		},
-		Permission: res.Config.Permission,
-		Modes:      []string{"menu_item"},
-	})
 	if !res.Config.Invisible {
+		res.Action(&Action{
+			Name:   "Delete",
+			Method: "DELETE",
+			URL: func(record interface{}, context *Context) string {
+				return context.URLFor(record, res)
+			},
+			Permission: res.Config.Permission,
+			Modes:      []string{"menu_item"},
+		})
+
 		menuName := res.Name
 		if !res.Config.Singleton {
 			menuName = inflection.Plural(res.Name)
 		}
 		admin.AddMenu(&Menu{Name: menuName, IconName: res.Config.IconName, Permissioner: res, Priority: res.Config.Priority, Ancestors: res.Config.Menu, RelativePath: res.ToParam()})
+
+		admin.RegisterResourceRouters(res, "create", "update", "read", "delete")
 	}
-	admin.RegisterResourceRouters(res, "create", "update", "read", "delete")
 
 	return res
 }

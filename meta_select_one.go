@@ -8,10 +8,10 @@ import (
 
 	"github.com/simonedbarber/go-template/html/template"
 
-	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	"github.com/simonedbarber/qor/utils"
+	"gorm.io/gorm/schema"
 )
 
 // SelectOneConfig meta configuration used for select one
@@ -75,10 +75,8 @@ func (selectOneConfig *SelectOneConfig) ConfigureQorMeta(metaor resource.Metaor)
 
 // ConfigureQORAdminFilter configure admin filter
 func (selectOneConfig *SelectOneConfig) ConfigureQORAdminFilter(filter *Filter) {
-	var structField *gorm.StructField
-	if field, ok := filter.Resource.GetAdmin().DB.NewScope(filter.Resource.Value).FieldByName(filter.Name); ok {
-		structField = field.StructField
-	}
+	scope := utils.NewScope(filter.Resource.Value)
+	var structField = scope.LookUpField(filter.Name)
 
 	selectOneConfig.prepareDataSource(structField, filter.Resource, "!remote_data_filter")
 
@@ -113,7 +111,7 @@ func (selectOneConfig *SelectOneConfig) FilterValue(filter *Filter, context *Con
 	return keyword
 }
 
-func (selectOneConfig *SelectOneConfig) prepareDataSource(field *gorm.StructField, res *Resource, routePrefix string) {
+func (selectOneConfig *SelectOneConfig) prepareDataSource(field *schema.Field, res *Resource, routePrefix string) {
 	// Set GetCollection
 	if selectOneConfig.Collection != nil {
 		selectOneConfig.SelectMode = "select"
@@ -143,7 +141,7 @@ func (selectOneConfig *SelectOneConfig) prepareDataSource(field *gorm.StructFiel
 	// Set GetCollection if normal select mode
 	if selectOneConfig.getCollection == nil {
 		if selectOneConfig.RemoteDataResource == nil && field != nil {
-			fieldType := field.Struct.Type
+			fieldType := field.FieldType
 			for fieldType.Kind() == reflect.Ptr || fieldType.Kind() == reflect.Slice {
 				fieldType = fieldType.Elem()
 			}
@@ -165,13 +163,8 @@ func (selectOneConfig *SelectOneConfig) prepareDataSource(field *gorm.StructFiel
 		}
 
 		selectOneConfig.getCollection = func(_ interface{}, context *Context) (results [][]string) {
-
 			cloneContext := context.clone()
 			cloneContext.setResource(selectOneConfig.RemoteDataResource)
-
-			//cloneContext := context.Admin.NewContext(context.Writer, context.Request)
-			//cloneContext.setResource(selectOneConfig.RemoteDataResource)
-
 			searcher := &Searcher{Context: cloneContext}
 			searcher.Pagination.CurrentPage = -1
 			searchResults, _ := searcher.FindMany()
@@ -179,7 +172,7 @@ func (selectOneConfig *SelectOneConfig) prepareDataSource(field *gorm.StructFiel
 			reflectValues := reflect.Indirect(reflect.ValueOf(searchResults))
 			for i := 0; i < reflectValues.Len(); i++ {
 				value := reflectValues.Index(i).Interface()
-				scope := context.GetDB().NewScope(value)
+				scope := utils.NewScope(value)
 
 				obj := reflect.Indirect(reflect.ValueOf(value))
 				idField := obj.FieldByName("ID")
@@ -195,7 +188,9 @@ func (selectOneConfig *SelectOneConfig) prepareDataSource(field *gorm.StructFiel
 					}
 
 				}
-				results = append(results, []string{fmt.Sprint(scope.PrimaryKeyValue()), utils.Stringify(value)})
+				rv := reflect.ValueOf(value)
+				rvField := rv.FieldByName(scope.PrimaryFieldDBNames[0])
+				results = append(results, []string{fmt.Sprint(rvField.Interface()), utils.Stringify(value)})
 			}
 			return
 		}

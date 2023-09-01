@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	"github.com/qor/responder"
+	"github.com/simonedbarber/responder"
+	"gorm.io/gorm"
 )
 
 // Controller admin controller
@@ -71,7 +71,6 @@ func (ac *Controller) New(context *Context) {
 
 // Create create data
 func (ac *Controller) Create(context *Context) {
-
 	res := context.Resource
 	status := http.StatusCreated
 	result := res.NewStruct()

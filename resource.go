@@ -8,12 +8,12 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
-	"github.com/qor/roles"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/roles"
+	"gorm.io/gorm"
 )
 
 // Config resource config struct
@@ -163,11 +163,13 @@ func (res *Resource) NewResource(value interface{}, config ...*Config) *Resource
 func (res *Resource) AddSubResource(fieldName string, config ...*Config) (subRes *Resource, err error) {
 	var (
 		admin = res.GetAdmin()
-		scope = &gorm.Scope{Value: res.Value}
+		scope = utils.NewScope(res.Value)
 	)
 
-	if field, ok := scope.FieldByName(fieldName); ok && field.Relationship != nil {
-		modelType := utils.ModelType(reflect.New(field.Struct.Type).Interface())
+	relationship := scope.Relationships.Relations[fieldName]
+	if field := scope.LookUpField(fieldName); field != nil && relationship != nil {
+
+		modelType := utils.ModelType(reflect.New(field.StructField.Type).Interface())
 		subRes = admin.NewResource(reflect.New(modelType).Interface(), config...)
 		subRes.setupParentResource(field.StructField.Name, res)
 
@@ -212,13 +214,13 @@ func (res *Resource) setupParentResource(fieldName string, parent *Resource) {
 			parentValue := parent.NewStruct()
 			if parentValue, err = findParent(context); err == nil {
 				primaryQuerySQL, primaryParams := res.ToPrimaryQueryParams(primaryKey, context)
-				result := context.GetDB().Model(parentValue).Where(primaryQuerySQL, primaryParams...).Related(value, fieldName)
+				result := context.GetDB().Model(parentValue).Where(primaryQuerySQL, primaryParams...).Preload(primaryKey).Find(value)
 				if result.Error != nil {
 					err = result.Error
 				}
 
-				scope := gorm.Scope{Value: value}
-				if scope.PrimaryKeyZero() && result.RowsAffected == 0 {
+				scope := utils.NewScope(res.Value)
+				if utils.PrimaryKeyZero(scope) && result.RowsAffected == 0 {
 					err = gorm.ErrRecordNotFound
 				}
 			}
@@ -231,10 +233,10 @@ func (res *Resource) setupParentResource(fieldName string, parent *Resource) {
 		parentValue := parent.NewStruct()
 		if parentValue, err = findParent(context); err == nil {
 			if _, ok := context.GetDB().Get("qor:getting_total_count"); ok {
-				*(value.(*int)) = context.GetDB().Model(parentValue).Association(fieldName).Count()
+				*(value.(*int64)) = context.GetDB().Model(parentValue).Association(fieldName).Count()
 				return nil
 			}
-			return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Model(parentValue).Association(fieldName).Find(value).Error
+			return context.GetDB().Model(parentValue).Association(fieldName).Find(value)
 		}
 		return err
 	}
@@ -242,7 +244,7 @@ func (res *Resource) setupParentResource(fieldName string, parent *Resource) {
 	res.SaveHandler = func(value interface{}, context *qor.Context) (err error) {
 		parentValue := parent.NewStruct()
 		if parentValue, err = findParent(context); err == nil {
-			return context.GetDB().Model(parentValue).Association(fieldName).Append(value).Error
+			return context.GetDB().Model(parentValue).Association(fieldName).Append(value)
 		}
 		return err
 	}
@@ -253,7 +255,7 @@ func (res *Resource) setupParentResource(fieldName string, parent *Resource) {
 			if err = context.GetDB().Where(primaryQuerySQL, primaryParams...).First(value).Error; err == nil {
 				parentValue := parent.NewStruct()
 				if parentValue, err = findParent(context); err == nil {
-					return context.GetDB().Model(parentValue).Association(fieldName).Delete(value).Error
+					return context.GetDB().Model(parentValue).Association(fieldName).Delete(value)
 				}
 			}
 		}
@@ -268,10 +270,10 @@ func (res *Resource) Decode(context *qor.Context, value interface{}) error {
 
 func (res *Resource) allAttrs() []string {
 	var attrs []string
-	scope := &gorm.Scope{Value: res.Value}
+	scope := utils.NewScope(res.Value)
 
 Fields:
-	for _, field := range scope.GetModelStruct().StructFields {
+	for _, field := range scope.Fields {
 		for _, meta := range res.metas {
 			if field.Name == meta.FieldName {
 				attrs = append(attrs, meta.Name)
@@ -279,22 +281,23 @@ Fields:
 			}
 		}
 
-		if field.IsForeignKey {
+		//if field.IsForeignKey {
+		if _, ok := field.Schema.Relationships.Relations[field.Name]; ok {
 			continue
 		}
 
-		for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt", "UpdatedBy", "CreatedBy"} {
+		for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt"} {
 			if value == field.Name {
 				continue Fields
 			}
 		}
 
-		if (field.IsNormal || field.Relationship != nil) && !field.IsIgnored {
+		if _, ok := field.TagSettings["-"]; (field.FieldType.Kind() != reflect.Struct || field.Schema.Relationships.Relations[field.Name] != nil) && !ok {
 			attrs = append(attrs, field.Name)
 			continue
 		}
 
-		fieldType := field.Struct.Type
+		fieldType := field.StructField.Type
 		for fieldType.Kind() == reflect.Ptr || fieldType.Kind() == reflect.Slice {
 			fieldType = fieldType.Elem()
 		}
@@ -673,9 +676,9 @@ func (res *Resource) SortableAttrs(columns ...string) []string {
 			columns = res.ConvertSectionToStrings(res.sections.IndexSections)
 		}
 		res.sections.SortableAttrs = &[]string{}
-		scope := res.GetAdmin().DB.NewScope(res.Value)
+		scope := utils.NewScope(res.Value)
 		for _, column := range columns {
-			if field, ok := scope.FieldByName(column); ok && field.DBName != "" {
+			if field := scope.LookUpField(column); field != nil && field.DBName != "" {
 				attrs := append(*res.sections.SortableAttrs, column)
 				res.sections.SortableAttrs = &attrs
 			}
@@ -700,7 +703,6 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				for _, column := range columns {
 					filterFields = append(filterFields, filterField{FieldName: column})
 				}
-
 				return filterResourceByFields(res, filterFields, keyword, context.GetDB(), context)
 			}
 		}
@@ -826,9 +828,10 @@ func (res *Resource) GetMeta(name string) *Meta {
 	}
 
 	if fallbackMeta == nil {
-		if field, ok := res.GetAdmin().DB.NewScope(res.Value).FieldByName(name); ok {
+		scope := utils.NewScope(res.Value)
+		if field := scope.LookUpField(name); field != nil {
 			meta := &Meta{Name: name, baseResource: res}
-			if field.IsPrimaryKey {
+			if field.PrimaryKey {
 				meta.Type = "hidden_primary_key"
 			}
 			meta.configure()
@@ -842,13 +845,9 @@ func (res *Resource) GetMeta(name string) *Meta {
 
 func (res *Resource) allowedSections(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
 	var newSections []*Section
-
 	for _, section := range sections {
-		// NOT GETTING SECTION.SECTIONS BEFORE HERE
-		newSection := Section{Resource: section.Resource, Title: section.Title, Type: section.Type}
+		newSection := Section{Resource: section.Resource, Title: section.Title}
 		var editableRows [][]string
-		//Need to insert section loop here to eliminate reused sections
-
 		for _, row := range section.Rows {
 			var editableColumns []string
 			for _, column := range row {
@@ -890,10 +889,11 @@ func (res *Resource) configure() {
 
 	configureModel(res.Value)
 
-	scope := gorm.Scope{Value: res.Value}
-	for _, field := range scope.Fields() {
-		if field.StructField.Struct.Type.Kind() == reflect.Struct {
-			fieldData := reflect.New(field.StructField.Struct.Type).Interface()
+	scope := utils.NewScope(res.Value)
+
+	for _, field := range scope.Fields {
+		if field.StructField.Type.Kind() == reflect.Struct {
+			fieldData := reflect.New(field.StructField.Type).Interface()
 			_, configureMetaBeforeInitialize := fieldData.(resource.ConfigureMetaBeforeInitializeInterface)
 			_, configureMeta := fieldData.(resource.ConfigureMetaInterface)
 

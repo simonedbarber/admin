@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
-	"github.com/qor/roles"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/roles"
+	"gorm.io/gorm/schema"
 )
 
 // MetaConfigInterface meta config interface
@@ -137,7 +137,7 @@ func (meta *Meta) configure() {
 
 	meta.PreInitialize()
 	if meta.FieldStruct != nil {
-		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaBeforeInitializeInterface); ok {
+		if injector, ok := reflect.New(meta.FieldStruct.StructField.Type).Interface().(resource.ConfigureMetaBeforeInitializeInterface); ok {
 			injector.ConfigureQorMetaBeforeInitialize(meta)
 		}
 	}
@@ -152,7 +152,7 @@ func (meta *Meta) configure() {
 	var hasColumn = meta.FieldStruct != nil
 
 	if hasColumn {
-		fieldType = meta.FieldStruct.Struct.Type
+		fieldType = meta.FieldStruct.StructField.Type
 		for fieldType.Kind() == reflect.Ptr {
 			fieldType = fieldType.Elem()
 		}
@@ -167,14 +167,14 @@ func (meta *Meta) configure() {
 				}
 			}
 
-			if relationship := meta.FieldStruct.Relationship; relationship != nil {
-				if relationship.Kind == "has_one" {
+			if relationship := meta.FieldStruct.Schema.Relationships.Relations[meta.FieldStruct.Name]; relationship != nil {
+				if relationship.Type == schema.HasOne {
 					meta.Type = "single_edit"
-				} else if relationship.Kind == "has_many" {
+				} else if relationship.Type == schema.HasMany {
 					meta.Type = "collection_edit"
-				} else if relationship.Kind == "belongs_to" {
+				} else if relationship.Type == schema.BelongsTo {
 					meta.Type = "select_one"
-				} else if relationship.Kind == "many_to_many" {
+				} else if relationship.Type == schema.Many2Many {
 					meta.Type = "select_many"
 				}
 			} else {
@@ -217,10 +217,9 @@ func (meta *Meta) configure() {
 				}
 			}
 		} else {
-			if relationship := meta.FieldStruct.Relationship; relationship != nil {
-				if (relationship.Kind == "has_one" || relationship.Kind == "has_many") && meta.Meta.Setter == nil && (meta.Type == "select_one" || meta.Type == "select_many") {
+			if relationship := meta.FieldStruct.Schema.Relationships.Relations[meta.FieldStruct.Name]; relationship != nil {
+				if (relationship.Type == schema.HasOne || relationship.Type == schema.HasMany) && meta.Meta.Setter == nil && (meta.Type == "select_one" || meta.Type == "select_many") {
 					meta.SetSetter(func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-						scope := &gorm.Scope{Value: resource}
 						reflectValue := reflect.Indirect(reflect.ValueOf(resource))
 						field := reflectValue.FieldByName(meta.FieldName)
 
@@ -241,7 +240,7 @@ func (meta *Meta) configure() {
 							context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
 						}
 
-						if !scope.PrimaryKeyZero() {
+						if !utils.PrimaryKeyZero(resource) {
 							context.GetDB().Model(resource).Association(meta.FieldName).Replace(field.Interface())
 							field.Set(reflect.Zero(field.Type()))
 						}
@@ -293,7 +292,7 @@ func (meta *Meta) configure() {
 
 	// call field's ConfigureMetaInterface
 	if meta.FieldStruct != nil {
-		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaInterface); ok {
+		if injector, ok := reflect.New(meta.FieldStruct.StructField.Type).Interface().(resource.ConfigureMetaInterface); ok {
 			injector.ConfigureQorMeta(meta)
 		}
 	}

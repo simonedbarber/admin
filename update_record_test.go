@@ -13,10 +13,10 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/qor/admin/tests/dummy"
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-	qorTestUtils "github.com/qor/qor/test/utils"
+	. "github.com/simonedbarber/admin/tests/dummy"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/resource"
+	qorTestUtils "github.com/simonedbarber/qor/test/utils"
 )
 
 func TestUpdateRecord(t *testing.T) {

@@ -9,10 +9,10 @@ import (
 
 	"github.com/simonedbarber/go-template/html/template"
 
-	"github.com/qor/assetfs"
-	"github.com/qor/qor"
-	"github.com/qor/qor/utils"
-	"github.com/qor/roles"
+	"github.com/simonedbarber/assetfs"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/roles"
 )
 
 var (

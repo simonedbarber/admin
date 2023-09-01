@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qor/qor"
-	"github.com/qor/qor/utils"
-	"github.com/qor/roles"
+	"github.com/simonedbarber/qor"
+	"github.com/simonedbarber/qor/utils"
+	"github.com/simonedbarber/roles"
 )
 
 // Middleware is a way to filter a request and response coming into your application
@@ -346,8 +346,6 @@ func (admin *Admin) RegisterResourceRouters(res *Resource, actions ...string) {
 
 // RegisterRoute register route
 func (res *Resource) RegisterRoute(method string, relativePath string, handler requestHandler, config *RouteConfig) {
-	log.Printf("ROUTE: %v", relativePath)
-
 	if config == nil {
 		config = &RouteConfig{}
 	}
