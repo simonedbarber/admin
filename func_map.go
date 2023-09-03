@@ -19,7 +19,7 @@ import (
 
 	"github.com/simonedbarber/go-template/html/template"
 
-	sprig "github.com/go-task/slim-sprig"
+	sprig "github.com/Masterminds/sprig/v3"
 	"github.com/jinzhu/inflection"
 	"github.com/simonedbarber/qor"
 	"github.com/simonedbarber/qor/resource"
